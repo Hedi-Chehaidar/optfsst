@@ -16,12 +16,16 @@ from typing import List, Tuple, Optional
 # Point this to your FSST binary (or export FSST_BINARY=/path/to/fsst)
 FSST_BINARY = os.environ.get("FSST_BINARY", "../build/fsst")
 
-RAW_DIR = "./raw/ClickBench"
-OUTPUT_DIR = "./refined/ClickBench"
+RAW_DIR = "./raw"
+OUTPUT_DIR = "./refined"
 SAMPLE_ROWS = 100_000
-AVG_LEN_THRESHOLD = 8
-FSST_VS_DICT_FACTOR = 2.0   # keep if fsst_bytes <= dict_bytes * factor
+AVG_LEN_THRESHOLD = 0
+FSST_VS_DICT_FACTOR = 1.0   # keep if fsst_bytes <= dict_bytes * factor
 MAX_WORKERS_CAP = 32
+DATASETS = [ "github_issues", "HashTags_1", "IGlocations2_2", 
+"glassdoor", "Homo_sapiens.GRCh38.92", "SNB1-parquet", 
+            "Reddit_Comments_7M_2019", "reviews_detailed",
+            "Parking_Violations_Issued_Fiscal_Year_2017"]
 # ----------------------------------------
 
 import bz2
@@ -34,7 +38,9 @@ def _maybe_decompress_csv(path: Path) -> tuple[Path, bool]:
     Returns (new_path, is_temp).
     """
     if not path.name.lower().endswith(".bz2"):
-        return path, False
+        def cleanup():
+            pass
+        return path, cleanup
 
     tmp_dir = tempfile.mkdtemp(prefix="bz2csv_")
     out_path = Path(tmp_dir) / path.name[:-4]  # strip .bz2
@@ -108,7 +114,7 @@ def load_nextiajd_metadata(meta_csv_path: str) -> dict[str, dict]:
 
     return m
 
-#NEXTIAJD_META = load_nextiajd_metadata("./raw/NextiaJD/metadata.csv")
+NEXTIAJD_META = load_nextiajd_metadata("./raw/NextiaJD/metadata.csv")
 
 
 def _quote_ident(col: str) -> str:
@@ -229,7 +235,7 @@ def _duckdb_dict_size(con: duckdb.DuckDBPyConnection, sample_rel: duckdb.DuckDBP
         +
         (COUNT({qcol}) * CASE
             WHEN COUNT(DISTINCT {qcol}) = 0 THEN 0
-            ELSE ceil(log2(COUNT(DISTINCT {qcol})) / 8)
+            ELSE ceil(log2(COUNT(DISTINCT {qcol}))) / 8.0
           END
         )
       AS BIGINT) AS total_compressed_size
@@ -296,8 +302,13 @@ def _run_fsst_file(binary: str, input_file: Path, output_file: Path) -> Tuple[Op
 
 def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
     print(f"\n\n ⚗️ ⚗️  Refining {input_path} -> {output_dir} ⚗️ ⚗️")
-    #if(input_path.name not in DATASETS) :
-    #    return False
+    ok = False
+    for i in DATASETS:
+        if i in str(input_path):
+            ok = True
+            break
+    if (not ok):
+        return False
     if not FSST_BINARY or not Path(FSST_BINARY).exists():
         print(f"🚨 FSST binary not found: {FSST_BINARY}")
         return False
@@ -306,7 +317,6 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
     try:
         try:
             relation, cleanup = _read_relation(con, input_path)
-            #relation, safe_to_orig = _make_safe_relation(con, relation)
 
 
         except Exception as e:
@@ -317,8 +327,8 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
         sample_rel = relation.limit(SAMPLE_ROWS)
 
         sample_count = sample_rel.aggregate("count(*)").fetchone()
-        if not sample_count or sample_count[0] == 0:
-            print("⏭️ Empty dataset sample, skipping.")
+        if not sample_count or sample_count[0] < 1000:
+            print(f"⏭️ Small dataset sample having {sample_count[0]} rows, skipping.")
             return False
         
 
@@ -361,6 +371,13 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
                 if in_bytes == 0:
                     print(f"⏭️ Column '{col}' sample wrote 0 bytes, skipping column.")
                     continue
+                if in_bytes > 35_000_000:
+                    print(f"⏭️ Column '{col}' too big, skipping column.")
+                    continue
+
+                if numeric_only(tmp_in):
+                    print(f"⏭️ Column '{col}' is numeric, skipping column.")
+                    continue
 
                 out_bytes, out, err, rc = _run_fsst_file(FSST_BINARY, tmp_in, tmp_out)
                 if rc != 0 or out_bytes is None:
@@ -368,18 +385,14 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
                     continue
 
                 
-                text_columns.append(col)
-                # stdout is a "compression factor" per your binary; log it for info
-                factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
-                print(f"👍 Include '{col}': fsst_bytes={out_bytes} <= {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
                 # Compare FSST output size vs dict estimate
-                '''if out_bytes <= dict_size * FSST_VS_DICT_FACTOR:
+                if out_bytes <= dict_size * FSST_VS_DICT_FACTOR:
                     text_columns.append(col)
                     # stdout is a "compression factor" per your binary; log it for info
                     factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
                     print(f"👍 Include '{col}': fsst_bytes={out_bytes} <= {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
                 else:
-                    print(f"👎 Exclude '{col}': fsst_bytes={out_bytes} > {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size}")'''
+                    print(f"👎 Exclude '{col}': fsst_bytes={out_bytes} > {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size}")
 
         if not text_columns:
             print(f"⏭️ No columns matched criteria in {input_path}. Skipping file.")
@@ -407,7 +420,7 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
 
     finally:
         con.close()
-        #cleanup()
+        cleanup()
 
 
 def process_raw_directory(raw_dir: str = RAW_DIR, output_dir: str = OUTPUT_DIR):
@@ -473,6 +486,51 @@ def process_raw_directory(raw_dir: str = RAW_DIR, output_dir: str = OUTPUT_DIR):
     print(f"Processed {len(files_to_process)} files:")
     print(f"  ✅ {processed} files refined.")
     print(f"  ⏭️ {skipped} files skipped (no compatible columns or errors).")
+
+
+# Regex that matches ints, floats, scientific notation
+_NUMERIC_RE = re.compile(
+    r"""
+    ^[+-]?(
+        (\d+(\.\d*)?) |      # 123, 123., 123.45
+        (\.\d+) |            # .45
+        (\d+(\.\d*)?[eE][+-]?\d+)  # scientific
+    )$
+    """,
+    re.VERBOSE,
+)
+
+_NULL_TOKENS = {"", "null", "nan", "none"}
+
+
+            
+
+def numeric_only(txt_path: Path) -> bool:
+    """
+    Returns True if file was deleted.
+    Returns False if file contains at least one non-numeric value.
+    """
+    try:
+        with txt_path.open("r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                val = line.strip()
+
+                # Null / empty
+                if val.lower() in _NULL_TOKENS:
+                    continue
+
+                # If anything is NOT numeric → keep file
+                if not _NUMERIC_RE.fullmatch(val):
+                    #print(val)
+                    return False
+
+        # File had only numeric values → delete
+        #print(txt_path)
+        #txt_path.unlink()
+        return True
+
+    except FileNotFoundError:
+        return False
 
 
 if __name__ == "__main__":

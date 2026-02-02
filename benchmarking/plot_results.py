@@ -2,9 +2,39 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 def main(csv_path: str):
     df = pd.read_csv(csv_path)
+
+    '''# plot special files
+    files = df["file"].unique()
+    configs = df["configuration"].unique()
+
+    # Set bar positions
+    x = np.arange(len(files))
+    width = 0.35  # width of each bar
+
+    # Create plot
+    plt.figure(figsize=(10, 6))
+
+    for i, config in enumerate(configs):
+        values = (
+            df[df["configuration"] == config]
+            .set_index("file")
+            .loc[files, "CF"]
+        )
+        plt.bar(x + i * width, values, width, label=config)
+
+    # Labels and formatting
+    plt.xlabel("File")
+    plt.ylabel("CF")
+    #plt.title("CF per File by Configuration")
+    plt.xticks(x + width / 2, files, rotation=45, ha="right")
+    plt.legend()
+    plt.tight_layout()
+    out_png = "./plots/CF_worst.png"
+    plt.savefig(out_png, dpi=300)'''
 
     # Ensure expected columns exist
     required = {"configuration", "Time", "CF"}
@@ -15,90 +45,115 @@ def main(csv_path: str):
     # Coerce numeric where possible (non-numeric CF rows become NaN)
     df["Time"] = pd.to_numeric(df["Time"], errors="coerce")
     df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
-
-    # Drop rows with missing values for each plot separately
-    df_time = df.dropna(subset=["configuration", "Time"]).copy()
-    df_cf = df.dropna(subset=["configuration", "CF"]).copy()
-
+    df_cf   = df[["configuration", "CF"]].copy()
+    df_time = df[["configuration", "Time"]].copy()
     # Keep configuration order as it appears in the CSV
     config_order = list(dict.fromkeys(df["configuration"].astype(str).tolist()))
 
-    # ---- Boxplot: CF ----
-    data_cf = [df_cf.loc[df_cf["configuration"] == c, "CF"].values for c in config_order]
+    # ---- Boxenplot: CF ----
     plt.figure()
-    bp = plt.boxplot(
-        data_cf,
-        tick_labels=config_order,
+    ax = plt.gca()
+    ax.axvline(
+        x=3.5,
+        color="black",
+        linestyle="--",
+        linewidth=1,
+        alpha=0.8
+    )
+    sns.boxplot(
+        data=df_cf,
+        x="configuration",
+        y="CF",
+        order=config_order,
+        ax=ax,
         showfliers=True,
-        showmeans=True,
-        meanprops=dict(
-            marker="o",
-            markerfacecolor="red",
-            markeredgecolor="black",
-            markersize=6
+        fill=False,
+        flierprops=dict(
+            marker=".",
+            markersize=3,
+            markerfacecolor="black",
+            markeredgecolor="black"
         )
+
     )
 
-    # Add numeric labels for the mean
-    for i, values in enumerate(data_cf, start=1):
-        if len(values) == 0:
+    # Add mean markers + numeric labels
+    means_cf = df_cf.groupby("configuration")["CF"].mean().reindex(config_order).values
+    x_pos = np.arange(len(config_order))
+    ax.scatter(x_pos, means_cf, marker="o", s=20, c="red", edgecolors="black", zorder=5)
+
+    for i, mean_val in enumerate(means_cf):
+        if np.isnan(mean_val):
             continue
-        mean_val = np.mean(values)
-
-        plt.text(
-            i,                      # x position (box index)
-            mean_val,               # y position (mean)
-            f"{mean_val:.3g}",      # formatted value
-            ha="left",
-            va="bottom",
-            fontsize=9,
-            color="red"
-        )
-
-    plt.xlabel("Configuration")
-    plt.ylabel("CF")
-    plt.xticks(rotation=30, ha="right")
-    plt.tight_layout()
-    out_png1 = "./plots/CF_combined_py.png"
-    plt.savefig(out_png1, dpi=150)
-
-    # ---- Boxplot: Time ----
-    data_time = [df_time.loc[df_time["configuration"] == c, "Time"].values for c in config_order]
-    plt.figure()
-    bp = plt.boxplot(
-        data_time,
-        tick_labels=config_order,
-        showfliers=True,
-        showmeans=True,
-        meanprops=dict(
-            marker="o",
-            markerfacecolor="red",
-            markeredgecolor="black",
-            markersize=6
-        )
-    )
-
-    for i, values in enumerate(data_time, start=1):
-        if len(values) == 0:
-            continue
-        mean_val = np.mean(values)
-
-        plt.text(
-            i,
+        ax.text(
+            i + 0.05,
             mean_val,
-            f"{mean_val:.3g}ms",
+            f"{mean_val:.2f}",
+            ha="left",
+            va="top",
+            fontsize=8,
+            color="red"
+        )
+    ax.set_ylim(bottom=1)
+    ax.set_xlabel("Compression method")
+    ax.set_ylabel("Compression factor")
+    #ax.set_yticks(list(range(1,14,2)))
+
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    out_png1 = "./plots/CF_combined.png"
+    plt.savefig(out_png1, dpi=300)
+    
+    # ---- Boxenplot: Time ----
+    plt.figure()
+    ax = plt.gca()
+    ax.axvline(
+        x=3.5,
+        color="black",
+        linestyle="--",
+        linewidth=1,
+        alpha=0.8
+    )
+
+    sns.boxplot(
+        data=df_time,
+        x="configuration",
+        y="Time",
+        order=config_order,
+        ax=ax,
+        showfliers=True,
+        fill=False,
+        flierprops=dict(
+            marker=".",
+            markersize=3,
+            markerfacecolor="black",
+            markeredgecolor="black"
+        )
+    )
+
+    means_time = df_time.groupby("configuration")["Time"].mean().reindex(config_order).values
+    x_pos = np.arange(len(config_order))
+    ax.scatter(x_pos, means_time, marker="o", s=20, c="red", edgecolors="black", zorder=5)
+
+    for i, mean_val in enumerate(means_time):
+        if np.isnan(mean_val):
+            continue
+        ax.text(
+            i + 0.2,
+            mean_val,
+            f"{mean_val:.1f}",
             ha="left",
             va="bottom",
-            fontsize=9,
+            fontsize=8,
             color="red"
         )
 
-    plt.xlabel("Configuration")
-    plt.ylabel("Time (milliseconds)")
+    ax.set_xlabel("Configuration")
+    ax.set_ylabel("Compression time [ms]")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
-    out_png2 = "./plots/Time_combined_py.png"
-    plt.savefig(out_png2, dpi=150)
+    out_png2 = "./plots/Time_combined.png"
+    plt.savefig(out_png2, dpi=300)
 
 if __name__ == "__main__":
-    main("./csv/results_py.csv")
+    main("./csv/results.csv")

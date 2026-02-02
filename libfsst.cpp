@@ -1024,7 +1024,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
 
    Encoder *encoder = new Encoder();
 
-   if (opt.flags == 0 || opt.flags == FSST_OPT_TRIPLES) {
+   if (opt.flags == 0) {
       encoder->symbolTable = shared_ptr<SymbolTable>(buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated));
    } else {
       encoder->symbolTable = shared_ptr<SymbolTable>(Btrfsst_buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated, opt));
