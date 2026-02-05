@@ -1,0 +1,737 @@
+configuration,Time,file
+FSST,19.3923,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ dp-train ,30.4054,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ triples ,36.1639,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ prune ,34.4138,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
+FSST + dp-encode,109.118,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ dp-train,103.591,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ triples,102.699,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
++ prune = BtrFSST,109.742,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_scontent.cdninstagram.com_hphotos-xaf1_t51.2885-15_e15_11226819_1604028346502178_113025182_n.jpg.txt
+FSST,45.4215,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ dp-train ,57.2641,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ triples ,72.9131,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ prune ,73.5003,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
+FSST + dp-encode,154.945,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ dp-train,161.359,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ triples,179.713,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
++ prune = BtrFSST,181.498,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/_LoDa_fascinates_me._MobileAL_Alabama.txt
+FSST,6.58476,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ dp-train ,12.7755,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ triples ,15.7524,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ prune ,15.4646,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
+FSST + dp-encode,36.2076,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ dp-train,36.4544,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ triples,33.6017,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
++ prune = BtrFSST,37.3131,../data/refined/PublicBIbenchmark/IGlocations2/IGlocations2_2/https_instagram.com_p_2eDZ8JkxhQ_.txt
+FSST,2.18534,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ dp-train ,8.11509,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ triples ,7.5674,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ prune ,8.07397,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
+FSST + dp-encode,8.90909,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ dp-train,11.0964,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ triples,12.1342,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
++ prune = BtrFSST,12.9824,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_19.txt
+FSST,3.26823,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ dp-train ,9.42425,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ triples ,11.7248,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ prune ,12.4657,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
+FSST + dp-encode,13.4524,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ dp-train,14.8716,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ triples,16.7083,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
++ prune = BtrFSST,17.0741,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_itunes.apple.com_us_app_id40934u2026_.txt
+FSST,3.77355,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ dp-train ,9.29058,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ triples ,11.4092,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ prune ,11.3597,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
+FSST + dp-encode,15.3802,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ dp-train,17.4033,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ triples,17.6298,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
++ prune = BtrFSST,18.0545,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_https_itunes.apple.com_us_app_id409341019_mt_8_at_10l69N_.txt
+FSST,4.48923,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ dp-train ,10.1119,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ triples ,11.7412,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ prune ,11.4449,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
+FSST + dp-encode,18.2302,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ dp-train,19.7829,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ triples,20.1068,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
++ prune = BtrFSST,21.2133,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/_u_expanded_url_u_http_twitter.com_AppsStorefree_status_429815693400604672_photo_1_u_sizes_u_large_u_h_425_u_resize_u_fit_u_w_650_u_small_u_h_222_u_resize_u_fit_u_w_339_u_medium_u_h_392_u_resize_u_fit.txt
+FSST,29.2416,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ dp-train ,39.8823,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ triples ,52.3113,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ prune ,52.3563,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
+FSST + dp-encode,100.997,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ dp-train,99.2613,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ triples,115.532,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
++ prune = BtrFSST,120.68,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6.txt
+FSST,16.94,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ dp-train ,28.4744,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ triples ,36.2813,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ prune ,35.6776,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
+FSST + dp-encode,101.182,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ dp-train,97.4282,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ triples,84.5712,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
++ prune = BtrFSST,101.873,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg_1.txt
+FSST,6.62914,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ dp-train ,12.3623,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ triples ,13.9911,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ prune ,13.8208,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
+FSST + dp-encode,28.1982,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ dp-train,31.5984,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ triples,31.8753,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
++ prune = BtrFSST,34.8259,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_3.txt
+FSST,5.47942,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ dp-train ,11.3404,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ triples ,12.3865,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ prune ,13.7717,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
+FSST + dp-encode,31.1977,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ dp-train,27.1289,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ triples,28.5673,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
++ prune = BtrFSST,30.4338,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000.txt
+FSST,17.1626,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ dp-train ,28.9482,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ triples ,36.5729,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ prune ,35.4187,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
+FSST + dp-encode,99.3966,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ dp-train,96.5932,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ triples,91.1324,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ prune = BtrFSST,98.4305,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/https_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
+FSST,7.44392,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ dp-train ,12.9699,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ triples ,15.8975,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ prune ,15.8508,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
+FSST + dp-encode,32.683,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ dp-train,28.7257,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ triples,32.8244,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
++ prune = BtrFSST,34.5824,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Wed_28_Mar_2012_22_40_51_0000.txt
+FSST,1.82212,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ dp-train ,3.49683,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ triples ,3.98318,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ prune ,3.8515,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
+FSST + dp-encode,5.41025,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ dp-train,7.12012,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ triples,6.75131,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
++ prune = BtrFSST,6.9123,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_2.txt
+FSST,4.21629,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ dp-train ,9.90119,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ triples ,11.819,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ prune ,11.804,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
+FSST + dp-encode,14.4741,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ dp-train,16.4489,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ triples,17.9256,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
++ prune = BtrFSST,19.121,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_5.txt
+FSST,17.0695,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ dp-train ,28.8902,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ triples ,35.6805,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ prune ,34.3943,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
+FSST + dp-encode,99.7731,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ dp-train,94.5024,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ triples,84.7961,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
++ prune = BtrFSST,103.084,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_pbs.twimg.com_profile_images_378800000689366873_3c70b1050a3d6c3546ea5362ce486d40_normal.jpeg.txt
+FSST,3.07336,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ dp-train ,8.49905,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ triples ,9.74398,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ prune ,10.4526,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
+FSST + dp-encode,11.4827,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ dp-train,13.2454,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ triples,14.1713,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
++ prune = BtrFSST,14.4138,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_10.txt
+FSST,1.8466,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ dp-train ,5.78362,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ triples ,5.58558,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ prune ,5.00091,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
+FSST + dp-encode,5.9783,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ dp-train,8.66599,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ triples,8.63484,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
++ prune = BtrFSST,8.40977,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar_1.txt
+FSST,3.27408,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ dp-train ,8.15174,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ triples ,10.037,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ prune ,10.1803,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
+FSST + dp-encode,11.925,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ dp-train,12.7967,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ triples,15.0292,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
++ prune = BtrFSST,15.5595,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_13.txt
+FSST,2.46407,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ dp-train ,8.33242,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ triples ,8.78548,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ prune ,9.09713,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
+FSST + dp-encode,11.7311,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ dp-train,13.0453,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ triples,13.5037,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
++ prune = BtrFSST,13.4298,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_21.txt
+FSST,29.1833,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ dp-train ,39.5402,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ triples ,52.2644,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ prune ,52.0704,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
+FSST + dp-encode,99.3334,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ dp-train,101.024,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ triples,114.129,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
++ prune = BtrFSST,117.706,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/برنامج_للايفون_وايباد_ABC_Smart_تعليم_الاطفال_الحروف_الانجليزيه_والكلمات_ايضا_https_t.co_sdCDAZn9ZE_http_t.co_59oG7AmXH6_1.txt
+FSST,1.80463,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ dp-train ,3.45683,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ triples ,4.07214,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ prune ,3.77873,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
+FSST + dp-encode,5.40004,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ dp-train,6.83562,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ triples,6.71095,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
++ prune = BtrFSST,7.04177,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/ar.txt
+FSST,8.75428,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ dp-train ,13.7743,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ triples ,19.6109,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ prune ,19.6508,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
+FSST + dp-encode,36.9254,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ dp-train,40.115,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ triples,41.9764,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
++ prune = BtrFSST,42.9585,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/1e38bb87b4afa480e0742a526801cf32.txt
+FSST,2.2736,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ dp-train ,7.60167,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ triples ,8.00946,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ prune ,8.20539,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
+FSST + dp-encode,9.39813,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ dp-train,11.4604,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ triples,13.23,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
++ prune = BtrFSST,13.2285,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_17.txt
+FSST,4.31117,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ dp-train ,9.92986,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ triples ,11.7095,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ prune ,11.8883,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
+FSST + dp-encode,14.3601,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ dp-train,16.6741,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ triples,18.1186,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
++ prune = BtrFSST,18.8134,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_14.txt
+FSST,5.76714,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ dp-train ,11.7268,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ triples ,12.5262,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ prune ,12.9114,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
+FSST + dp-encode,29.6782,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ dp-train,26.804,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ triples,29.3702,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
++ prune = BtrFSST,30.5012,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/Sun_02_Feb_2014_03_17_01_0000_1.txt
+FSST,12.6738,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ dp-train ,20.5199,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ triples ,26.898,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ prune ,25.7408,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
+FSST + dp-encode,60.6924,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ dp-train,61.7658,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ triples,65.5366,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
++ prune = BtrFSST,66.9737,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree_status_429815693400604672.txt
+FSST,3.58034,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ dp-train ,8.43451,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ triples ,10.3613,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ prune ,10.3799,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
+FSST + dp-encode,11.6147,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ dp-train,12.7042,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ triples,14.8495,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
++ prune = BtrFSST,15.4584,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_4.txt
+FSST,2.10046,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ dp-train ,8.04908,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ triples ,7.88803,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ prune ,8.58493,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
+FSST + dp-encode,10.1274,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ dp-train,11.2907,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ triples,11.5958,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
++ prune = BtrFSST,12.8872,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_18.txt
+FSST,6.58763,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ dp-train ,12.2277,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ triples ,14.6669,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ prune ,14.2044,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
+FSST + dp-encode,28.3342,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ dp-train,30.7118,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ triples,31.3757,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
++ prune = BtrFSST,34.7311,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/null_9.txt
+FSST,6.94816,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ dp-train ,12.8385,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ triples ,14.0183,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ prune ,14.8464,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
+FSST + dp-encode,36.1376,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ dp-train,36.0815,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ triples,37.118,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
++ prune = BtrFSST,37.5472,../data/refined/PublicBIbenchmark/HashTags/HashTags_1/http_twitter.com_AppsStorefree.txt
+FSST,8.99878,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ dp-train ,14.0662,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ triples ,19.2708,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ prune ,18.8199,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
+FSST + dp-encode,30.6229,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ dp-train,30.1628,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ triples,35.5079,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
++ prune = BtrFSST,35.1677,../data/refined/CyclicJoinBench/SNB1-parquet/post/content.txt
+FSST,4.20037,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ dp-train ,10.3367,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ triples ,11.9287,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ prune ,11.2628,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
+FSST + dp-encode,18.551,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ dp-train,16.7126,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ triples,19.3539,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
++ prune = BtrFSST,20.0354,../data/refined/CyclicJoinBench/SNB1-parquet/post/imageFile.txt
+FSST,10.6958,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ dp-train ,15.864,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ triples ,21.0295,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ prune ,20.6658,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
+FSST + dp-encode,41.1563,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ dp-train,43.2423,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ triples,46.156,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
++ prune = BtrFSST,46.2129,../data/refined/CyclicJoinBench/SNB1-parquet/comment/content.txt
+FSST,2.13036,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ dp-train ,7.60795,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ triples ,9.73748,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ prune ,10.3789,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
+FSST + dp-encode,6.38519,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ dp-train,6.74466,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ triples,7.81376,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
++ prune = BtrFSST,8.61434,../data/refined/CyclicJoinBench/SNB1-parquet/place/url.txt
+FSST,2.40124,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ dp-train ,7.56775,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ triples ,12.8583,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ prune ,14.2532,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
+FSST + dp-encode,6.75384,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ dp-train,6.14075,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ triples,11.9641,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
++ prune = BtrFSST,11.6941,../data/refined/CyclicJoinBench/SNB1-parquet/place/name.txt
+FSST,3.69398,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ dp-train ,9.17648,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ triples ,12.0442,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ prune ,11.8678,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
+FSST + dp-encode,13.457,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ dp-train,13.1183,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ triples,15.2876,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
++ prune = BtrFSST,15.3435,../data/refined/CyclicJoinBench/SNB1-parquet/tag/url.txt
+FSST,3.72082,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ dp-train ,8.6955,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ triples ,14.4,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ prune ,15.5971,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
+FSST + dp-encode,9.4579,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ dp-train,9.66711,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ triples,15.3492,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
++ prune = BtrFSST,15.7884,../data/refined/CyclicJoinBench/SNB1-parquet/tag/name.txt
+FSST,2.94976,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ dp-train ,7.34598,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ triples ,12.7838,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ prune ,13.4115,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
+FSST + dp-encode,6.89798,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ dp-train,6.83328,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ triples,12.6835,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
++ prune = BtrFSST,12.8793,../data/refined/CyclicJoinBench/SNB1-parquet/person/locationIP.txt
+FSST,3.96614,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ dp-train ,9.9948,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ triples ,11.6535,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ prune ,12.843,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
+FSST + dp-encode,13.4142,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ dp-train,13.5965,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ triples,14.0554,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
++ prune = BtrFSST,15.1809,../data/refined/CyclicJoinBench/SNB1-parquet/person/email.txt
+FSST,5.70586,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ dp-train ,11.7535,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ triples ,12.6635,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ prune ,12.8504,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
+FSST + dp-encode,23.5198,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ dp-train,24.108,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ triples,24.0822,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
++ prune = BtrFSST,26.2404,../data/refined/CyclicJoinBench/SNB1-parquet/forum/title.txt
+FSST,3.19288,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ dp-train ,9.64614,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ triples ,10.8249,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ prune ,10.9396,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
+FSST + dp-encode,10.1922,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ dp-train,11.766,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ triples,12.2574,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
++ prune = BtrFSST,12.9674,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/url.txt
+FSST,3.34048,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ dp-train ,8.50092,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ triples ,12.6989,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ prune ,12.2082,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
+FSST + dp-encode,8.5278,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ dp-train,8.60135,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ triples,11.8694,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
++ prune = BtrFSST,12.423,../data/refined/CyclicJoinBench/SNB1-parquet/organisation/name.txt
+FSST,10.7244,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ dp-train ,16.4416,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ triples ,21.091,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ prune ,21.2429,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
+FSST + dp-encode,42.7119,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ dp-train,41.5518,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ triples,46.0251,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
++ prune = BtrFSST,47.3769,../data/refined/CyclicJoinBench/SNB1-parquet/message/content.txt
+FSST,19.9178,../data/refined/ClickBench/hits/Referer.txt
++ dp-train ,31.4242,../data/refined/ClickBench/hits/Referer.txt
++ triples ,40.0718,../data/refined/ClickBench/hits/Referer.txt
++ prune ,38.8259,../data/refined/ClickBench/hits/Referer.txt
+FSST + dp-encode,71.5867,../data/refined/ClickBench/hits/Referer.txt
++ dp-train,72.1043,../data/refined/ClickBench/hits/Referer.txt
++ triples,77.5222,../data/refined/ClickBench/hits/Referer.txt
++ prune = BtrFSST,81.7296,../data/refined/ClickBench/hits/Referer.txt
+FSST,51.3447,../data/refined/ClickBench/hits/Title.txt
++ dp-train ,78.7518,../data/refined/ClickBench/hits/Title.txt
++ triples ,86.5781,../data/refined/ClickBench/hits/Title.txt
++ prune ,87.5248,../data/refined/ClickBench/hits/Title.txt
+FSST + dp-encode,201.746,../data/refined/ClickBench/hits/Title.txt
++ dp-train,205.683,../data/refined/ClickBench/hits/Title.txt
++ triples,222.624,../data/refined/ClickBench/hits/Title.txt
++ prune = BtrFSST,222.933,../data/refined/ClickBench/hits/Title.txt
+FSST,17.6639,../data/refined/ClickBench/hits/URL.txt
++ dp-train ,26.8245,../data/refined/ClickBench/hits/URL.txt
++ triples ,29.4228,../data/refined/ClickBench/hits/URL.txt
++ prune ,29.6299,../data/refined/ClickBench/hits/URL.txt
+FSST + dp-encode,66.5556,../data/refined/ClickBench/hits/URL.txt
++ dp-train,62.5216,../data/refined/ClickBench/hits/URL.txt
++ triples,65.5372,../data/refined/ClickBench/hits/URL.txt
++ prune = BtrFSST,68.6873,../data/refined/ClickBench/hits/URL.txt
+FSST,1.968,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ dp-train ,5.42087,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ triples ,5.99765,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ prune ,5.60719,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
+FSST + dp-encode,6.0656,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ dp-train,9.23941,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ triples,8.72167,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
++ prune = BtrFSST,9.77231,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/transcript_support_level.txt
+FSST,3.00191,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ dp-train ,7.90737,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ triples ,10.379,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ prune ,10.6806,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
+FSST + dp-encode,10.3315,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ dp-train,11.3651,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ triples,13.7161,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
++ prune = BtrFSST,14.991,../data/refined/NextiaJD/Homo_sapiens.GRCh38.92/exon_id.txt
+FSST,31.5786,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ dp-train ,45.8276,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ triples ,54.5674,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ prune ,54.6818,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
+FSST + dp-encode,167.418,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ dp-train,165.271,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ triples,156.591,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
++ prune = BtrFSST,169.696,../data/refined/NextiaJD/glassdoor/headerapplyUrl.txt
+FSST,10.7163,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ dp-train ,16.9877,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ triples ,20.7553,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ prune ,20.7409,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
+FSST + dp-encode,41.1285,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ dp-train,39.7422,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ triples,43.0797,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
++ prune = BtrFSST,44.3495,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobTitle.txt
+FSST,10.6794,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ dp-train ,16.0057,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ triples ,20.3675,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ prune ,21.9178,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
+FSST + dp-encode,42.5341,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ dp-train,40.817,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ triples,42.9335,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
++ prune = BtrFSST,43.9678,../data/refined/NextiaJD/glassdoor/headerjobTitle.txt
+FSST,8.43588,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ dp-train ,12.6173,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ triples ,17.7581,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ prune ,17.5138,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
+FSST + dp-encode,32.1853,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ dp-train,35.7611,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ triples,38.4547,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
++ prune = BtrFSST,37.2659,../data/refined/NextiaJD/glassdoor/gaTrackerDatapageRequestGuidguid.txt
+FSST,2.46006,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ dp-train ,8.09239,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ triples ,9.8615,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ prune ,10.6174,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
+FSST + dp-encode,6.94013,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ dp-train,7.12658,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ triples,10.0879,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
++ prune = BtrFSST,9.60677,../data/refined/NextiaJD/glassdoor/gaTrackerDatajobViewTrackingResulttrackingUrl.txt
+FSST,45.5596,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ dp-train ,63.4836,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ triples ,75.5551,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ prune ,75.1692,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
+FSST + dp-encode,185.499,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ dp-train,190.919,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ triples,212.034,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
++ prune = BtrFSST,216.526,../data/refined/NextiaJD/Reddit_Comments_7M_2019/body.txt
+FSST,20.3957,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ dp-train ,27.9415,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ triples ,33.0572,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ prune ,32.4983,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
+FSST + dp-encode,77.3151,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ dp-train,74.0329,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ triples,79.0606,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
++ prune = BtrFSST,81.4154,../data/refined/NextiaJD/Reddit_Comments_7M_2019/permalink.txt
+FSST,4.34774,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ dp-train ,9.17097,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ triples ,14.9357,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ prune ,15.5908,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
+FSST + dp-encode,10.4663,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ dp-train,10.2319,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ triples,14.7934,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
++ prune = BtrFSST,15.0949,../data/refined/NextiaJD/Reddit_Comments_7M_2019/id.txt
+FSST,3.33706,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ dp-train ,9.98093,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ triples ,11.3337,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ prune ,11.6071,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
+FSST + dp-encode,12.6978,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ dp-train,14.101,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ triples,16.1097,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
++ prune = BtrFSST,16.3915,../data/refined/NextiaJD/Reddit_Comments_7M_2019/author_flair_richtext.txt
+FSST,4.67349,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ dp-train ,10.3056,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ triples ,15.2067,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ prune ,15.6449,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
+FSST + dp-encode,14.0372,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ dp-train,13.0047,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ triples,18.7664,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
++ prune = BtrFSST,19.2231,../data/refined/NextiaJD/Reddit_Comments_7M_2019/parent_id.txt
+FSST,99.2159,../data/refined/NextiaJD/github_issues/body.txt
++ dp-train ,134.217,../data/refined/NextiaJD/github_issues/body.txt
++ triples ,164.343,../data/refined/NextiaJD/github_issues/body.txt
++ prune ,163.469,../data/refined/NextiaJD/github_issues/body.txt
+FSST + dp-encode,357.999,../data/refined/NextiaJD/github_issues/body.txt
++ dp-train,380.052,../data/refined/NextiaJD/github_issues/body.txt
++ triples,416.128,../data/refined/NextiaJD/github_issues/body.txt
++ prune = BtrFSST,429.528,../data/refined/NextiaJD/github_issues/body.txt
+FSST,15.1988,../data/refined/NextiaJD/github_issues/issue_url.txt
++ dp-train ,23.3267,../data/refined/NextiaJD/github_issues/issue_url.txt
++ triples ,29.687,../data/refined/NextiaJD/github_issues/issue_url.txt
++ prune ,29.9226,../data/refined/NextiaJD/github_issues/issue_url.txt
+FSST + dp-encode,63.4869,../data/refined/NextiaJD/github_issues/issue_url.txt
++ dp-train,63.7605,../data/refined/NextiaJD/github_issues/issue_url.txt
++ triples,68.3157,../data/refined/NextiaJD/github_issues/issue_url.txt
++ prune = BtrFSST,71.4099,../data/refined/NextiaJD/github_issues/issue_url.txt
+FSST,8.18552,../data/refined/NextiaJD/github_issues/issue_title.txt
++ dp-train ,13.3348,../data/refined/NextiaJD/github_issues/issue_title.txt
++ triples ,18.3847,../data/refined/NextiaJD/github_issues/issue_title.txt
++ prune ,18.1399,../data/refined/NextiaJD/github_issues/issue_title.txt
+FSST + dp-encode,29.3468,../data/refined/NextiaJD/github_issues/issue_title.txt
++ dp-train,28.4726,../data/refined/NextiaJD/github_issues/issue_title.txt
++ triples,33.9917,../data/refined/NextiaJD/github_issues/issue_title.txt
++ prune = BtrFSST,34.0516,../data/refined/NextiaJD/github_issues/issue_title.txt
+FSST,95.5667,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ dp-train ,121.142,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ triples ,142.396,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ prune ,139.787,../data/refined/NextiaJD/reviews_detailed/comments.txt
+FSST + dp-encode,358.692,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ dp-train,369.372,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ triples,403.889,../data/refined/NextiaJD/reviews_detailed/comments.txt
++ prune = BtrFSST,412.118,../data/refined/NextiaJD/reviews_detailed/comments.txt
+FSST,3.5583,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ dp-train ,9.16439,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ triples ,13.2684,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ prune ,13.4035,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
+FSST + dp-encode,10.2941,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ dp-train,10.6772,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ triples,13.8226,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
++ prune = BtrFSST,15.0672,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Intersecting_Street.txt
+FSST,2.38548,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ dp-train ,6.77493,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ triples ,7.87868,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ prune ,8.18248,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
+FSST + dp-encode,7.39418,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ dp-train,9.87756,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ triples,9.90536,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
++ prune = BtrFSST,10.4532,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Registration_State.txt
+FSST,2.6397,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ dp-train ,7.57904,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ triples ,12.1361,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ prune ,12.7075,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
+FSST + dp-encode,8.20996,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ dp-train,9.39511,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ triples,11.5181,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
++ prune = BtrFSST,12.5114,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Sub_Division.txt
+FSST,5.09561,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ dp-train ,10.0348,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ triples ,16.7845,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ prune ,17.0261,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
+FSST + dp-encode,12.0774,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ dp-train,11.9403,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ triples,18.5573,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
++ prune = BtrFSST,18.6511,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Plate_ID.txt
+FSST,2.56448,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ dp-train ,7.30774,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ triples ,11.6531,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ prune ,11.8111,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
+FSST + dp-encode,6.33068,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ dp-train,6.68067,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ triples,9.03566,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
++ prune = BtrFSST,10.4214,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/Meter_Number.txt
+FSST,3.54157,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ dp-train ,8.62157,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ triples ,14.0587,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ prune ,13.5427,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
+FSST + dp-encode,9.00591,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ dp-train,8.64164,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ triples,14.0283,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
++ prune = BtrFSST,14.3209,../data/refined/NextiaJD/Parking_Violations_Issued_Fiscal_Year_2017/House_Number.txt
+FSST,3.17661,../data/refined/dbtext/hamlet
++ dp-train ,8.02509,../data/refined/dbtext/hamlet
++ triples ,12.1901,../data/refined/dbtext/hamlet
++ prune ,12.7432,../data/refined/dbtext/hamlet
+FSST + dp-encode,9.07897,../data/refined/dbtext/hamlet
++ dp-train,9.1549,../data/refined/dbtext/hamlet
++ triples,12.1614,../data/refined/dbtext/hamlet
++ prune = BtrFSST,12.9558,../data/refined/dbtext/hamlet
+FSST,10.2672,../data/refined/dbtext/wikipedia
++ dp-train ,16.3652,../data/refined/dbtext/wikipedia
++ triples ,20.9592,../data/refined/dbtext/wikipedia
++ prune ,21.1036,../data/refined/dbtext/wikipedia
+FSST + dp-encode,39.6411,../data/refined/dbtext/wikipedia
++ dp-train,38.9852,../data/refined/dbtext/wikipedia
++ triples,47.4383,../data/refined/dbtext/wikipedia
++ prune = BtrFSST,48.6513,../data/refined/dbtext/wikipedia
+FSST,8.05781,../data/refined/dbtext/ps_comment
++ dp-train ,14.6445,../data/refined/dbtext/ps_comment
++ triples ,16.6499,../data/refined/dbtext/ps_comment
++ prune ,16.2484,../data/refined/dbtext/ps_comment
+FSST + dp-encode,34.9535,../data/refined/dbtext/ps_comment
++ dp-train,36.2687,../data/refined/dbtext/ps_comment
++ triples,42.7983,../data/refined/dbtext/ps_comment
++ prune = BtrFSST,41.385,../data/refined/dbtext/ps_comment
+FSST,5.26071,../data/refined/dbtext/c_name
++ dp-train ,10.7869,../data/refined/dbtext/c_name
++ triples ,16.3758,../data/refined/dbtext/c_name
++ prune ,14.3548,../data/refined/dbtext/c_name
+FSST + dp-encode,25.8875,../data/refined/dbtext/c_name
++ dp-train,24.7241,../data/refined/dbtext/c_name
++ triples,25.7058,../data/refined/dbtext/c_name
++ prune = BtrFSST,24.9812,../data/refined/dbtext/c_name
+FSST,5.32059,../data/refined/dbtext/chinese
++ dp-train ,11.1899,../data/refined/dbtext/chinese
++ triples ,17.3094,../data/refined/dbtext/chinese
++ prune ,18.1835,../data/refined/dbtext/chinese
+FSST + dp-encode,14.7937,../data/refined/dbtext/chinese
++ dp-train,14.9096,../data/refined/dbtext/chinese
++ triples,21.892,../data/refined/dbtext/chinese
++ prune = BtrFSST,20.603,../data/refined/dbtext/chinese
+FSST,9.72264,../data/refined/dbtext/uuid
++ dp-train ,14.5715,../data/refined/dbtext/uuid
++ triples ,20.8991,../data/refined/dbtext/uuid
++ prune ,20.4075,../data/refined/dbtext/uuid
+FSST + dp-encode,35.4377,../data/refined/dbtext/uuid
++ dp-train,37.6261,../data/refined/dbtext/uuid
++ triples,45.0801,../data/refined/dbtext/uuid
++ prune = BtrFSST,46.179,../data/refined/dbtext/uuid
+FSST,4.02965,../data/refined/dbtext/hex
++ dp-train ,7.99624,../data/refined/dbtext/hex
++ triples ,14.1584,../data/refined/dbtext/hex
++ prune ,14.064,../data/refined/dbtext/hex
+FSST + dp-encode,12.2034,../data/refined/dbtext/hex
++ dp-train,12.1373,../data/refined/dbtext/hex
++ triples,17.1028,../data/refined/dbtext/hex
++ prune = BtrFSST,17.1921,../data/refined/dbtext/hex
+FSST,3.26568,../data/refined/dbtext/japanese
++ dp-train ,8.02898,../data/refined/dbtext/japanese
++ triples ,12.8974,../data/refined/dbtext/japanese
++ prune ,12.4368,../data/refined/dbtext/japanese
+FSST + dp-encode,8.20387,../data/refined/dbtext/japanese
++ dp-train,8.11227,../data/refined/dbtext/japanese
++ triples,12.492,../data/refined/dbtext/japanese
++ prune = BtrFSST,12.9057,../data/refined/dbtext/japanese
+FSST,3.07556,../data/refined/dbtext/street
++ dp-train ,8.09923,../data/refined/dbtext/street
++ triples ,12.5161,../data/refined/dbtext/street
++ prune ,12.0709,../data/refined/dbtext/street
+FSST + dp-encode,7.62414,../data/refined/dbtext/street
++ dp-train,7.50881,../data/refined/dbtext/street
++ triples,11.3503,../data/refined/dbtext/street
++ prune = BtrFSST,12.4937,../data/refined/dbtext/street
+FSST,7.60334,../data/refined/dbtext/yago
++ dp-train ,13.2702,../data/refined/dbtext/yago
++ triples ,18.9804,../data/refined/dbtext/yago
++ prune ,18.9012,../data/refined/dbtext/yago
+FSST + dp-encode,25.3504,../data/refined/dbtext/yago
++ dp-train,25.5069,../data/refined/dbtext/yago
++ triples,31.6053,../data/refined/dbtext/yago
++ prune = BtrFSST,31.5155,../data/refined/dbtext/yago
+FSST,8.27184,../data/refined/dbtext/lastname
++ dp-train ,13.3625,../data/refined/dbtext/lastname
++ triples ,18.913,../data/refined/dbtext/lastname
++ prune ,19.3082,../data/refined/dbtext/lastname
+FSST + dp-encode,28.5741,../data/refined/dbtext/lastname
++ dp-train,28.6984,../data/refined/dbtext/lastname
++ triples,35.133,../data/refined/dbtext/lastname
++ prune = BtrFSST,35.0714,../data/refined/dbtext/lastname
+FSST,7.95093,../data/refined/dbtext/movies
++ dp-train ,13.1461,../data/refined/dbtext/movies
++ triples ,18.9984,../data/refined/dbtext/movies
++ prune ,19.2819,../data/refined/dbtext/movies
+FSST + dp-encode,27.7529,../data/refined/dbtext/movies
++ dp-train,27.6615,../data/refined/dbtext/movies
++ triples,34.6835,../data/refined/dbtext/movies
++ prune = BtrFSST,36.186,../data/refined/dbtext/movies
+FSST,5.53623,../data/refined/dbtext/location
++ dp-train ,10.7102,../data/refined/dbtext/location
++ triples ,15.2196,../data/refined/dbtext/location
++ prune ,14.712,../data/refined/dbtext/location
+FSST + dp-encode,25.5033,../data/refined/dbtext/location
++ dp-train,23.1663,../data/refined/dbtext/location
++ triples,28.1536,../data/refined/dbtext/location
++ prune = BtrFSST,28.5623,../data/refined/dbtext/location
+FSST,7.52061,../data/refined/dbtext/email
++ dp-train ,12.9079,../data/refined/dbtext/email
++ triples ,19.2286,../data/refined/dbtext/email
++ prune ,18.7114,../data/refined/dbtext/email
+FSST + dp-encode,28.509,../data/refined/dbtext/email
++ dp-train,30.0701,../data/refined/dbtext/email
++ triples,33.9503,../data/refined/dbtext/email
++ prune = BtrFSST,33.5215,../data/refined/dbtext/email
+FSST,3.87775,../data/refined/dbtext/firstname
++ dp-train ,8.92629,../data/refined/dbtext/firstname
++ triples ,14.7541,../data/refined/dbtext/firstname
++ prune ,14.4285,../data/refined/dbtext/firstname
+FSST + dp-encode,10.6302,../data/refined/dbtext/firstname
++ dp-train,10.4339,../data/refined/dbtext/firstname
++ triples,16.0902,../data/refined/dbtext/firstname
++ prune = BtrFSST,16.5388,../data/refined/dbtext/firstname
+FSST,3.2264,../data/refined/dbtext/credentials
++ dp-train ,8.01451,../data/refined/dbtext/credentials
++ triples ,12.5494,../data/refined/dbtext/credentials
++ prune ,12.6787,../data/refined/dbtext/credentials
+FSST + dp-encode,7.87301,../data/refined/dbtext/credentials
++ dp-train,7.97524,../data/refined/dbtext/credentials
++ triples,12.582,../data/refined/dbtext/credentials
++ prune = BtrFSST,12.483,../data/refined/dbtext/credentials
+FSST,8.50719,../data/refined/dbtext/wiki
++ dp-train ,13.5003,../data/refined/dbtext/wiki
++ triples ,20.1806,../data/refined/dbtext/wiki
++ prune ,19.8315,../data/refined/dbtext/wiki
+FSST + dp-encode,30.1113,../data/refined/dbtext/wiki
++ dp-train,30.7478,../data/refined/dbtext/wiki
++ triples,37.009,../data/refined/dbtext/wiki
++ prune = BtrFSST,37.7311,../data/refined/dbtext/wiki
+FSST,3.33633,../data/refined/dbtext/city
++ dp-train ,8.4156,../data/refined/dbtext/city
++ triples ,13.583,../data/refined/dbtext/city
++ prune ,13.599,../data/refined/dbtext/city
+FSST + dp-encode,7.80373,../data/refined/dbtext/city
++ dp-train,7.50925,../data/refined/dbtext/city
++ triples,13.0867,../data/refined/dbtext/city
++ prune = BtrFSST,13.3366,../data/refined/dbtext/city
+FSST,6.53846,../data/refined/dbtext/urls2
++ dp-train ,11.6134,../data/refined/dbtext/urls2
++ triples ,16.5887,../data/refined/dbtext/urls2
++ prune ,15.1558,../data/refined/dbtext/urls2
+FSST + dp-encode,21.7739,../data/refined/dbtext/urls2
++ dp-train,22.5526,../data/refined/dbtext/urls2
++ triples,26.2707,../data/refined/dbtext/urls2
++ prune = BtrFSST,27.8737,../data/refined/dbtext/urls2
+FSST,8.1368,../data/refined/dbtext/l_comment
++ dp-train ,13.4695,../data/refined/dbtext/l_comment
++ triples ,18.2444,../data/refined/dbtext/l_comment
++ prune ,16.3182,../data/refined/dbtext/l_comment
+FSST + dp-encode,37.8858,../data/refined/dbtext/l_comment
++ dp-train,37.1175,../data/refined/dbtext/l_comment
++ triples,39.83,../data/refined/dbtext/l_comment
++ prune = BtrFSST,41.4702,../data/refined/dbtext/l_comment
+FSST,3.81608,../data/refined/dbtext/faust
++ dp-train ,8.71382,../data/refined/dbtext/faust
++ triples ,14.105,../data/refined/dbtext/faust
++ prune ,13.8564,../data/refined/dbtext/faust
+FSST + dp-encode,10.0296,../data/refined/dbtext/faust
++ dp-train,9.89652,../data/refined/dbtext/faust
++ triples,15.8239,../data/refined/dbtext/faust
++ prune = BtrFSST,15.7791,../data/refined/dbtext/faust
+FSST,3.8983,../data/refined/dbtext/genome
++ dp-train ,5.61181,../data/refined/dbtext/genome
++ triples ,12.2797,../data/refined/dbtext/genome
++ prune ,12.3329,../data/refined/dbtext/genome
+FSST + dp-encode,13.2884,../data/refined/dbtext/genome
++ dp-train,13.3965,../data/refined/dbtext/genome
++ triples,18.3242,../data/refined/dbtext/genome
++ prune = BtrFSST,18.668,../data/refined/dbtext/genome
+FSST,15.2165,../data/refined/dbtext/urls
++ dp-train ,23.8864,../data/refined/dbtext/urls
++ triples ,28.7118,../data/refined/dbtext/urls
++ prune ,29.1732,../data/refined/dbtext/urls
+FSST + dp-encode,61.9455,../data/refined/dbtext/urls
++ dp-train,62.694,../data/refined/dbtext/urls
++ triples,68.5625,../data/refined/dbtext/urls
++ prune = BtrFSST,73.9948,../data/refined/dbtext/urls

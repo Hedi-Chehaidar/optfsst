@@ -1,7 +1,18 @@
-g++ runner.cpp -o runner
+g++ decomp.cpp -o decomp
 cd ../build
 make -j
 cd ../benchmarking
-./runner
+./decomp
 python3 plot_results.py
+
+
+
+g++ comp.cpp -o comp
+cd ../build
+make -j
+cd ../benchmarking
+./comp
+python3 plot_results.py
+
+
 

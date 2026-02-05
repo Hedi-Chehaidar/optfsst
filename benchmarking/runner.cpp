@@ -35,6 +35,7 @@ static std::pair<bool, double> parse_first_number(const std::string& s) {
     return {false, 0.0};
 }
 
+
 // Run command, capture stdout, measure wall time ms.
 static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code, double& ms) {
     using clock = std::chrono::steady_clock;
@@ -79,7 +80,7 @@ int main() {
     // Input files (one file per run).
     std::vector<std::string> files;
     namespace fs = std::filesystem;
-    std::string path = "../data/refined";
+    std::string path = "../data/refined_all";
     
     for (const auto& entry : fs::recursive_directory_iterator(path)) {
         if(entry.is_regular_file())
@@ -100,17 +101,17 @@ int main() {
     // Output CSV path
 
 
-    std::ofstream out("./csv/results.csv");
-    std::ofstream out2("./csv/best_config.csv");
-    std::ofstream out3("./csv/dict.csv");
+    std::ofstream out("./csv/results2.csv");
+    std::ofstream out2("./csv/best_config2.csv");
+    std::ofstream out3("./csv/dict2.csv");
     out << "configuration,Time,CF,file\n";
     out2 << "configuration,Time,CF,file\n";
     out3 << "configuration,Time,CF,file\n";
 
-    std::ofstream stat("stats.txt");
+    /*std::ofstream stat("stats.txt");
     std::vector<std::pair<double, std::string>> comps;
     int cnt_worse = 0;
-    std::map<std::string, int> best;
+    std::map<std::string, int> best;*/
 
     for (const auto& bin : binaries) { // only one binary for now
         for (const auto& file : files) {
@@ -162,7 +163,7 @@ int main() {
                 /*std::cerr << "[bin=" << bin << " cfg=" << cfg.name << "] file=" << file
                           << " time=" << ms << "s exit=" << exit_code << "\n";*/
             }
-            comps.push_back({v.back() / v[0], file});
+            /*comps.push_back({v.back() / v[0], file});
             if(v.back() < v[0]) cnt_worse++;
 
 
@@ -171,7 +172,7 @@ int main() {
             out2 << csv_escape("Best") << ","
                 << "0" << ","
                 << best_cf << ","
-                << file << "\n";
+                << file << "\n";*/
 
 
 
@@ -214,37 +215,13 @@ int main() {
         }
         
     }
-    std::sort(comps.begin(), comps.end());
+    /*std::sort(comps.begin(), comps.end());
     stat << "worse on " << cnt_worse << " files from " << files.size() << " (" << (cnt_worse * 100.0) / files.size() << "%) :\n";
     for(int i = 0; i < cnt_worse; i++) stat << comps[i].first << " " << comps[i].second << "\n";
     stat << "--------\nbetter on files:\n";
-    for(int i = files.size() - 1; i >= cnt_worse; --i) stat << comps[i].first << " " << comps[i].second << "\n";
+    for(int i = files.size() - 1; i >= cnt_worse; --i) stat << comps[i].first << " " << comps[i].second << "\n";*/
 
-    /*std::ofstream out2("./csv/results2.csv");
-    out2 << "configuration,file,CF\n";
-    for(int i = 0; i < 3; i++) {
-        for(auto& cfg: configs) {
-            std::ostringstream cmd;
-            cmd << "../build/fsst";
-            if (!cfg.args.empty()) cmd << " " << cfg.args;
-            cmd << " " << comps[i].second;
-            cmd << " ../build/out";
-            int exit_code = 0;
-            double ms = 0.0;
-            std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code, ms);
-            auto [ok, cf_value] = parse_first_number(stdout_text);
-            std::string cf_field = ok ? std::to_string(cf_value)
-                                          : csv_escape(stdout_text);
-            std::string file_name = "";
-            for(int j = comps[i].second.length() - 5; comps[i].second[j] != '/'; j--) file_name += comps[i].second[j];
-            reverse(file_name.begin(), file_name.end());
-            out2 << csv_escape(cfg.name) << ","
-                    << file_name << ","
-                    << cf_field << "\n"; 
-        }
-    }*/
-
-    for(auto& c : best) std::cout << c.first << ": " << c.second << "\n";
+    //for(auto& c : best) std::cout << c.first << ": " << c.second << "\n";
     
     std::cout << "runner finished" << std::endl;
     return 0;

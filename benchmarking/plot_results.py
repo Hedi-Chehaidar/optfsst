@@ -7,50 +7,22 @@ import seaborn as sns
 def main(csv_path: str):
     df = pd.read_csv(csv_path)
 
-    '''# plot special files
-    files = df["file"].unique()
-    configs = df["configuration"].unique()
-
-    # Set bar positions
-    x = np.arange(len(files))
-    width = 0.35  # width of each bar
-
-    # Create plot
-    plt.figure(figsize=(10, 6))
-
-    for i, config in enumerate(configs):
-        values = (
-            df[df["configuration"] == config]
-            .set_index("file")
-            .loc[files, "CF"]
-        )
-        plt.bar(x + i * width, values, width, label=config)
-
-    # Labels and formatting
-    plt.xlabel("File")
-    plt.ylabel("CF")
-    #plt.title("CF per File by Configuration")
-    plt.xticks(x + width / 2, files, rotation=45, ha="right")
-    plt.legend()
-    plt.tight_layout()
-    out_png = "./plots/CF_worst.png"
-    plt.savefig(out_png, dpi=300)'''
-
     # Ensure expected columns exist
-    required = {"configuration", "Time", "CF"}
+    #required = {"configuration", "Time", "CF"}
+    required = {"configuration", "Time"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"CSV missing columns: {missing}")
 
     # Coerce numeric where possible (non-numeric CF rows become NaN)
     df["Time"] = pd.to_numeric(df["Time"], errors="coerce")
-    df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
-    df_cf   = df[["configuration", "CF"]].copy()
+    #df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
+    #df_cf   = df[["configuration", "CF"]].copy()
     df_time = df[["configuration", "Time"]].copy()
     # Keep configuration order as it appears in the CSV
     config_order = list(dict.fromkeys(df["configuration"].astype(str).tolist()))
 
-    # ---- Boxenplot: CF ----
+    '''# ---- Boxplot: CF ----
     plt.figure()
     ax = plt.gca()
     ax.axvline(
@@ -95,16 +67,16 @@ def main(csv_path: str):
             color="red"
         )
     ax.set_ylim(bottom=1)
-    ax.set_xlabel("Compression method")
+    ax.set_xlabel("Configuration")
     ax.set_ylabel("Compression factor")
     #ax.set_yticks(list(range(1,14,2)))
 
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
-    out_png1 = "./plots/CF_combined.png"
-    plt.savefig(out_png1, dpi=300)
+    out_png1 = "./plots/best_config2.png"
+    plt.savefig(out_png1, dpi=300)'''
     
-    # ---- Boxenplot: Time ----
+    # ---- Boxplot: Time ----
     plt.figure()
     ax = plt.gca()
     ax.axvline(
@@ -152,8 +124,8 @@ def main(csv_path: str):
     ax.set_ylabel("Compression time [ms]")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
-    out_png2 = "./plots/Time_combined.png"
+    out_png2 = "./plots/decomp_time.png"
     plt.savefig(out_png2, dpi=300)
 
 if __name__ == "__main__":
-    main("./csv/results.csv")
+    main("./csv/decomp.csv")

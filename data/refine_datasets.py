@@ -17,7 +17,7 @@ from typing import List, Tuple, Optional
 FSST_BINARY = os.environ.get("FSST_BINARY", "../build/fsst")
 
 RAW_DIR = "./raw"
-OUTPUT_DIR = "./refined"
+OUTPUT_DIR = "./refined_all"
 SAMPLE_ROWS = 100_000
 AVG_LEN_THRESHOLD = 0
 FSST_VS_DICT_FACTOR = 1.0   # keep if fsst_bytes <= dict_bytes * factor
@@ -379,7 +379,16 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
                     print(f"⏭️ Column '{col}' is numeric, skipping column.")
                     continue
 
+                text_columns.append(col)
                 out_bytes, out, err, rc = _run_fsst_file(FSST_BINARY, tmp_in, tmp_out)
+                if rc != 0 or out_bytes is None:
+                    print(f"🚨 FSST failed for '{col}' (rc={rc}). stderr:\n{err[:1200]}")
+                    continue
+                # stdout is a "compression factor" per your binary; log it for info
+                factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
+                print(f"👍 Include '{col}': fsst_bytes={out_bytes}, {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
+                
+                '''out_bytes, out, err, rc = _run_fsst_file(FSST_BINARY, tmp_in, tmp_out)
                 if rc != 0 or out_bytes is None:
                     print(f"🚨 FSST failed for '{col}' (rc={rc}). stderr:\n{err[:1200]}")
                     continue
@@ -392,7 +401,7 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
                     factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
                     print(f"👍 Include '{col}': fsst_bytes={out_bytes} <= {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
                 else:
-                    print(f"👎 Exclude '{col}': fsst_bytes={out_bytes} > {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size}")
+                    print(f"👎 Exclude '{col}': fsst_bytes={out_bytes} > {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size}")'''
 
         if not text_columns:
             print(f"⏭️ No columns matched criteria in {input_path}. Skipping file.")
