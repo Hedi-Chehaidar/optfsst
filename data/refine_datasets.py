@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from pathlib import Path, PurePath
 import os
 import duckdb
@@ -13,7 +12,6 @@ from datetime import datetime
 from typing import List, Tuple, Optional
 
 # ---------------- Config ----------------
-# Point this to your FSST binary (or export FSST_BINARY=/path/to/fsst)
 FSST_BINARY = os.environ.get("FSST_BINARY", "../build/fsst")
 
 RAW_DIR = "./raw"
@@ -388,16 +386,11 @@ def refine_dataset(input_path: PurePath, output_dir: PurePath) -> bool:
                 factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
                 print(f"👍 Include '{col}': fsst_bytes={out_bytes}, {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
                 
-                '''out_bytes, out, err, rc = _run_fsst_file(FSST_BINARY, tmp_in, tmp_out)
-                if rc != 0 or out_bytes is None:
-                    print(f"🚨 FSST failed for '{col}' (rc={rc}). stderr:\n{err[:1200]}")
-                    continue
-
-                
+                '''
                 # Compare FSST output size vs dict estimate
                 if out_bytes <= dict_size * FSST_VS_DICT_FACTOR:
                     text_columns.append(col)
-                    # stdout is a "compression factor" per your binary; log it for info
+                    # stdout is a "compression factor", log it for info
                     factor_str = out.strip().splitlines()[0] if out.strip() else "(no factor printed)"
                     print(f"👍 Include '{col}': fsst_bytes={out_bytes} <= {FSST_VS_DICT_FACTOR}x dict_bytes={dict_size} | factor={factor_str}")
                 else:
@@ -530,12 +523,7 @@ def numeric_only(txt_path: Path) -> bool:
 
                 # If anything is NOT numeric → keep file
                 if not _NUMERIC_RE.fullmatch(val):
-                    #print(val)
                     return False
-
-        # File had only numeric values → delete
-        #print(txt_path)
-        #txt_path.unlink()
         return True
 
     except FileNotFoundError:

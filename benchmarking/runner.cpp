@@ -6,50 +6,29 @@
   #define pclose _pclose
 #endif
 
+namespace fs = std::filesystem;
+
 struct Config {
     std::string name;     // configuration name that goes into the CSV
     std::string args;     // arguments passed to the binary for this config
 };
 
-static std::string csv_escape(const std::string& s) {
-    bool need_quotes = false;
-    for (char c : s) {
-        if (c == ',' || c == '"' || c == '\n' || c == '\r') { need_quotes = true; break; }
-    }
-    if (!need_quotes) return s;
-
-    std::string out = "\"";
-    for (char c : s) out += (c == '"') ? "\"\"" : std::string(1, c);
-    out += "\"";
-    return out;
-}
-
-// Extract first numeric value from stdout (CF). If none, parse fails.
-static std::pair<bool, double> parse_first_number(const std::string& s) {
-    static const std::regex re(R"(([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?))");
-    std::smatch m;
-    if (std::regex_search(s, m, re)) {
-        try { return {true, std::stod(m.str(1))}; }
-        catch (...) { return {false, 0.0}; }
-    }
-    return {false, 0.0};
-}
-
 
 // Run command, capture stdout, measure wall time ms.
-static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code, double& ms) {
+static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code, double& s) {
     using clock = std::chrono::steady_clock;
-
-    auto t0 = clock::now();
+    double d_time = 0;
     for(int i = 0; i < 5; i++) {
-        FILE* pipe = popen(cmd.c_str(), "r");
-        int rc = pclose(pipe);
+        auto t0 = clock::now();
+        int rc = std::system(cmd.c_str());
+        auto t1 = clock::now();
+        d_time += std::chrono::duration<double>(t1 - t0).count() * 1000;
+        fs::remove("../build/out");
     }
-    auto t1 = clock::now();
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
         exit_code = -1;
-        ms = 0.0;
+        s = 0.0;
         return "";
     }
     std::string output;
@@ -65,7 +44,7 @@ static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code
     assert(rc == 0);
 
     
-    ms = std::chrono::duration<double>(t1 - t0).count() * 1000 / 5;
+    s = d_time / 5;
     return output;
 }
 
@@ -74,13 +53,13 @@ int main() {
     // One or more binaries to benchmark (paths to executables).
     const std::vector<std::string> binaries = {
         "../build/fsst"
-        // "/path/to/another_binary"
+        //""
     };
 
     // Input files (one file per run).
     std::vector<std::string> files;
-    namespace fs = std::filesystem;
-    std::string path = "../data/refined_all";
+    
+    std::string path = "../data/refined";
     
     for (const auto& entry : fs::recursive_directory_iterator(path)) {
         if(entry.is_regular_file())
@@ -89,67 +68,77 @@ int main() {
     // Configurations: name + args passed to the binary.
     const std::vector<Config> configs = {
         {"FSST", ""},
-        {"+ dp-train ", "--dp-train"},
-        {"+ triples ", "--dp-train --triples --triples"},
+        {"FSST + dp-train ", "--dp-train"},
+        {"+ triples ", "--dp-train --triples"},
         {"+ prune ", "--dp-train --triples --prune"},
         {"FSST + dp-encode", "--dp-encode"},
         {"+ dp-train", "--dp-train --dp-encode"},
-        {"+ triples", "--dp-train --triples --triples --dp-encode"},
+        {"+ triples", "--dp-train --triples --dp-encode"},
+        //{"LZ4", "../build/lz4"},
+        //{"ZSTD", "../build/zstd"},
         {"+ prune = BtrFSST", "--dp-train --triples --prune --dp-encode"},
     };
 
     // Output CSV path
 
 
-    std::ofstream out("./csv/results2.csv");
-    std::ofstream out2("./csv/best_config2.csv");
-    std::ofstream out3("./csv/dict2.csv");
+    std::ofstream out("./csv/improvement.csv");
+    std::ofstream out2("./csv/best_config.csv");
+    std::ofstream out3("./csv/dict.csv");
     out << "configuration,Time,CF,file\n";
     out2 << "configuration,Time,CF,file\n";
     out3 << "configuration,Time,CF,file\n";
 
-    /*std::ofstream stat("stats.txt");
+    std::ofstream stat("stats.txt");
     std::vector<std::pair<double, std::string>> comps;
     int cnt_worse = 0;
-    std::map<std::string, int> best;*/
+    std::map<std::string, int> best;
 
     for (const auto& bin : binaries) { // only one binary for now
         for (const auto& file : files) {
             std::vector<double> v;
+            std::vector<double> times;
             double best_cf = 0; std::string best_config;
 
             for (const auto& cfg : configs) {
                 std::ostringstream cmd;
                 cmd << bin;
-                if (!cfg.args.empty()) cmd << " " << cfg.args;
+                if (!cfg.args.empty()){
+                    if(bin != "") cmd << " ";
+                    cmd << cfg.args;
+                }
                 cmd << " " << file;
                 //output file 
+                if(cfg.name == "ZSTD") cmd << " -o";
                 cmd << " ../build/out";
                 int exit_code = 0;
-                double ms = 0.0;
-                std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code, ms);
-
-                auto [ok, cf_value] = parse_first_number(stdout_text);
-                v.push_back(cf_value);
-                // If CF isn't numeric, store raw stdout (escaped) in CF column.
-                std::string cf_field = ok ? std::to_string(cf_value)
-                                          : csv_escape(stdout_text);
-
+                double s = 0.0;
+                std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code, s);
                 
-                out << csv_escape(cfg.name) << ","
-                    << ms << ","
-                    << cf_field << ","
-                    << file << "\n";
+                bool ok = true;
+                double cf_value = 1.0 * fs::file_size(file) / fs::file_size("../build/out");
+                s /= 1000;
+                s = 1.0 * fs::file_size(file) / (1 << 20) / s;
+                fs::remove("../build/out");
+
+                v.push_back(cf_value);
+                times.push_back(s);
+                if(cfg.name != "FSST") {
+                    out << cfg.name << ","
+                        << times[0] / s << ","
+                        << cf_value / v[0] << ","
+                        << file << "\n";
+                }
 
                 if(cfg.name == "FSST" || cfg.name == "+ prune = BtrFSST") {
-                    out2 << csv_escape(cfg.name == "FSST" ? cfg.name : "BtrFSST") << ","
-                    << ms << ","
-                    << cf_field << ","
+                    out2 << (cfg.name == "FSST" ? cfg.name : "BtrFSST") << ","
+                    << s << ","
+                    << cf_value << ","
                     << file << "\n";
 
-                    out3 << csv_escape(cfg.name == "FSST" ? cfg.name : "BtrFSST") << ","
-                    << ms << ","
-                    << cf_field << ","
+                    out3 << (cfg.name == "FSST" ? cfg.name : "BtrFSST") << ","
+                    << s << ","
+                    << cf_value << ","
                     << file << "\n";
                 }
 
@@ -158,21 +147,17 @@ int main() {
                     best_config = cfg.name;
                 }
                 
-
-                // Progress / debugging
-                /*std::cerr << "[bin=" << bin << " cfg=" << cfg.name << "] file=" << file
-                          << " time=" << ms << "s exit=" << exit_code << "\n";*/
             }
-            /*comps.push_back({v.back() / v[0], file});
+            comps.push_back({v.back() / v[0], file});
             if(v.back() < v[0]) cnt_worse++;
 
 
             // check best configuration
             best[best_config]++;
-            out2 << csv_escape("Best") << ","
+            out2 << "Best" << ","
                 << "0" << ","
                 << best_cf << ","
-                << file << "\n";*/
+                << file << "\n";
 
 
 
@@ -192,12 +177,12 @@ int main() {
                 }
             }
             fout.flush();
-            unsigned unique_nb = unique.size(), col_size = std::ceil(std::log2(unique_nb)) * total_rows / 8;
+            unsigned unique_nb = unique.size();
+            double col_size = std::ceil(std::log2(unique_nb)) * total_rows / 8.0;
             unsigned unique_size = 0;
             for(auto& r: unique) unique_size += r.length();
 
             for (const auto& cfg : configs) {
-                if(cfg.name != "FSST" && cfg.name != "+ prune = BtrFSST") continue;
                 std::ostringstream cmd;
                 cmd << "../build/fsst";
                 if (!cfg.args.empty()) cmd << " " << cfg.args;
@@ -205,23 +190,25 @@ int main() {
                 int exit_code = 0;
                 double ms = 0.0;
                 std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code, ms);
-                auto [ok, cf] = parse_first_number(stdout_text);
                 unsigned compressed = fs::file_size("../build/out");
                 double dict_fsst_size = col_size + compressed, dict_fsst_cf = fs::file_size(file) / dict_fsst_size;
-                out3 << "Dict " << csv_escape(cfg.name == "FSST" ? cfg.name : "BtrFSST")
+                out << "DICT " << (cfg.name == "FSST" ? cfg.name : "BtrFSST")
                 << ", " << ms << ", " << dict_fsst_cf << ", " << file << "\n";
             }
 
         }
         
     }
-    /*std::sort(comps.begin(), comps.end());
+
+    // print stats
+    std::sort(comps.begin(), comps.end());
     stat << "worse on " << cnt_worse << " files from " << files.size() << " (" << (cnt_worse * 100.0) / files.size() << "%) :\n";
     for(int i = 0; i < cnt_worse; i++) stat << comps[i].first << " " << comps[i].second << "\n";
     stat << "--------\nbetter on files:\n";
-    for(int i = files.size() - 1; i >= cnt_worse; --i) stat << comps[i].first << " " << comps[i].second << "\n";*/
+    for(int i = files.size() - 1; i >= cnt_worse; --i) stat << comps[i].first << " " << comps[i].second << "\n";
 
-    //for(auto& c : best) std::cout << c.first << ": " << c.second << "\n";
+    // print for each configuration, on how many files it was best 
+    for(auto& c : best) std::cout << c.first << ": " << c.second << "\n";
     
     std::cout << "runner finished" << std::endl;
     return 0;

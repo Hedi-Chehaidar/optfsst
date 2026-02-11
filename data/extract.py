@@ -89,7 +89,7 @@ def download_ClickBench(dataset = "ClickBench"):
 def main():
     for dataset in DATASETS:
         download_data(dataset)
-    #download_ClickBench()
+    download_ClickBench()
 
 
 

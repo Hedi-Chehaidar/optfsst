@@ -2,3 +2,6 @@ build/
 data/raw/
 data/refined/
 data/refined_all/
+benchmarking/csv/
+benchmarking/plots/
+benchmarking/prv/

@@ -45,7 +45,6 @@
  * We optionally support C-style zero-terminated strings (zero appearing only at the end). In this case, the compressed strings are 
  * also zero-terminated strings. In zero-terminated mode, the zero-byte at the end *is* counted in the string byte-length.
  */
-#include "function_profiler.hpp"
 #ifndef FSST_INCLUDED_H
 #define FSST_INCLUDED_H
 

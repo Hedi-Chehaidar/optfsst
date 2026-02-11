@@ -1,8 +1,0 @@
-+ dp-train: 18
-+ dp-train : 5
-+ prune : 2
-+ prune = BtrFSST: 30
-+ triples: 24
-+ triples : 5
-FSST: 2
-FSST + dp-encode: 6
