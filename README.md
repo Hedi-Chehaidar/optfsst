@@ -1,5 +1,5 @@
 # BtrFSST
-BtrFSST is an extension of [FSST](https://github.com/cwida/fsst), including the contributions of the [Bachelor's thesis](https://github.com/Hedi-Chehaidar/btrfsst/blob/master/btrfsst-thesis.pdf) by Hedi Chehaidar
+BtrFSST is an extension of [FSST](https://github.com/cwida/fsst), including the contributions of the Bachelor's thesis by Hedi Chehaidar
 
 Contributions:
 - DP compression function
