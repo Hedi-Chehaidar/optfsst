@@ -8,7 +8,7 @@ Contributions:
 
 BtrFSST has higher compression factors than FSST by up to 47.7%. Average improvement was at 7.3%.
 
-[CF improvement plot](https://github.com/Hedi-Chehaidar/btrfsst/blob/master/btrfsst-CF-improvement.png)
+[![CF improvement plot](https://github.com/Hedi-Chehaidar/btrfsst/blob/master/btrfsst-CF-improvement.png)]
 
 You can build the project and compile it the same way like in the FSST repository. Use command line options when running the binary to include the contributions (no options = FSST, all options = BtrFSST).
 
