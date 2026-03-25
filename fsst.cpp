@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
    }
    thread readerThread([&src]{ reader(src); });
    thread writerThread([&dst]{ writer(dst); });
-   //double d_time = 0;
+   double d_time = 0;
    using clock = chrono::steady_clock;
    for(int swap=0; true; swap = 1-swap) {
       srcDoneIO[swap].wait(); // wait until input buffer is available (i.e. done reading)
@@ -197,17 +197,23 @@ int main(int argc, char* argv[]) {
       if (decompress) {
           fsst_decoder_t decoder;
           size_t hdr = fsst_import(&decoder, srcBuf[swap]);
-          dstLen[swap] = fsst_decompress(&decoder, srcLen[swap] - hdr, srcBuf[swap] + hdr, FSST_MEMBUF, dstBuf[swap] = dstMem[swap]);   
+          auto t0 = clock::now();
+          dstLen[swap] = fsst_decompress(&decoder, srcLen[swap] - hdr, srcBuf[swap] + hdr, FSST_MEMBUF, dstBuf[swap] = dstMem[swap]);
+          auto t1 = clock::now();
+          d_time += std::chrono::duration<double>(t1 - t0).count() ;
       } else {
          unsigned char tmp[FSST_MAXHEADER];
          fsst_encoder_t* encoder = Btrfsst_create(1, &srcLen[swap],
                                         const_cast<const unsigned char **>(&srcBuf[swap]), 0, &opt);
 
          size_t hdr = fsst_export(encoder, tmp);
+         auto t0 = clock::now();
          if (Btrfsst_compress(encoder, 1, &srcLen[swap], const_cast<const unsigned char **>(&srcBuf[swap]),
                                                    FSST_MEMBUF * 2, dstMem[swap] + FSST_MAXHEADER + 3,
                                                    &dstLen[swap], &dstBuf[swap], &opt)<1)
             return -1;
+         auto t1 = clock::now();
+         d_time += std::chrono::duration<double>(t1 - t0).count() ;
          dstLen[swap] += 3 + hdr;
          dstBuf[swap] -= 3 + hdr;
          SERIALIZE(dstLen[swap],dstBuf[swap]); // block starts with size
@@ -219,6 +225,7 @@ int main(int argc, char* argv[]) {
       srcDoneCPU[swap].post(); // input buffer may be re-used by the reader for the next block
       dstDoneCPU[swap].post(); // output buffer is ready for writing out
    }
+   cout << d_time;
    //cout <<  1.0 * srcTot / dstTot << endl; // output just CF
    //cerr  << (decompress?"Dec":"C") << "ompressed " << srcTot <<  " bytes into " << dstTot << " bytes ==> " << (int) ((100*dstTot)/srcTot) << "%" << endl;
    // force wait until all background writes finished
