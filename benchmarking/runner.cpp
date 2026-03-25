@@ -7,7 +7,6 @@
 #endif
 
 namespace fs = std::filesystem;
-
 struct Config {
     std::string name;     // configuration name that goes into the CSV
     std::string args;     // arguments passed to the binary for this config
@@ -54,43 +53,66 @@ int main() {
     }
     // Configurations: name + args passed to the binary.
     const std::vector<Config> configs = {
-        {"BtrFSST", "--dp-train --dp-encode"},
+        {"FSST", ""},
+        {"BtrFSST", "--dp-train --prune --triples --dp-encode"},
     };
 
     // Output CSV path
 
 
-    std::ofstream out("./csv/counters.csv");
-    out << "counters,Time,CF,file\n";
+    std::ofstream out1("./csv/compression_speed.csv");
+    out1 << "configuration,Time,file\n";
+    std::ofstream out2("./csv/decompression_speed.csv");
+    out2 << "configuration,Time,file\n";
 
     for (const auto& bin : binaries) { // only one binary for now
         for (const auto& file : files) {
 
             for (const auto& cfg : configs) {
-                for(int nbCounters = 2; nbCounters <= 5; nbCounters++) {
-                    double time = 0;
-                    std::ostringstream cmd;
-                    cmd << bin;
-                    cmd << " " << cfg.args;
-                    if(nbCounters > 2) cmd << " --triples";
-                    cmd << " --counters " << nbCounters;
-                    cmd << " " << file;
-                    //output file 
-                    cmd << " ../build/out";
+                // compression
+                double comp_time = 0;
 
-                    for(int i = 0; i < 5; i++) {
-                        int exit_code = 0;
-                        std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
-                        time += std::stod(stdout_text);
-                    }
-
-                    double cf_value = 1.0 * fs::file_size(file) / fs::file_size("../build/out");
-                    out << nbCounters << ","
-                        << time / 5 << ","
-                        << cf_value << ","
-                        << file << "\n";
-    
+                std::ostringstream cmd;
+                cmd << bin;
+                cmd << " " << cfg.args;
+                cmd << " " << file;
+                //output file 
+                cmd << " ../build/out";
+            
+                for(int i = 0; i < 5; i++) {
+                    int exit_code = 0;
+                    std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
+                    comp_time += std::stod(stdout_text);
                 }
+
+                comp_time /= 5;
+
+                double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
+
+                out1 << cfg.name << ","
+                    << comp_speed << ","
+                    << file << "\n";
+
+                // decompression
+                double decomp_time = 0;
+                std::ostringstream cmd2;
+                cmd2 << bin << " -d ../build/out ../build/out2";
+
+                for(int i = 0; i < 5; i++) {
+                    int exit_code = 0;
+                    std::string stdout_text = run_and_capture_stdout(cmd2.str(), exit_code);
+                    decomp_time += std::stod(stdout_text);
+                }
+
+                decomp_time /= 5;
+                double decomp_speed = fs::file_size(file) / 1000000.0 / decomp_time;
+                
+                out2 << cfg.name << ","
+                    << decomp_speed << ","
+                    << file << "\n";
+
+                
+                
                 
             }
 
