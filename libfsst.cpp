@@ -588,6 +588,9 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
             if(seen.find(num) != seen.end()) continue;
             seen.insert(num);
             // add symbol to st
+            if (len == 1) {
+               st->byteCodes[s.first()] = FSST_CODE_BASE + st->nSymbols + (1<<FSST_LEN_BITS); // len=1 (<<FSST_LEN_BITS)
+            }
             s.set_code_len(FSST_CODE_BASE + st->nSymbols, len);
             st->symbols[FSST_CODE_BASE + st->nSymbols++] = s;
             st->lenHisto[len-1]++;
@@ -640,10 +643,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          }
       }
 
-
-      // if DP training is enabled, rebuild trie for training layout (so next compressCountDP is fast)
-      st->trieReadyTrain = false;
-      st->trieReadyFinal = false;
    };
 
    
@@ -675,10 +674,15 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
       makeTableEx(st, counters);
    }
 
-   delete st;
    counters.restore1(bestCounters);
    makeTableEx(bestTable, counters);
+   /*for(int i = 0; i < 65536; i++) {
+      if(!st->bucket2[i].empty()) {
+         cout << i << ": " << st->bucket2[i].count << endl;
+      }
+   }*/
    bestTable->finalize(zeroTerminated);
+   delete st;
    return bestTable;
 }
 

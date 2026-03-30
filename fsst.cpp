@@ -202,23 +202,24 @@ int main(int argc, char* argv[]) {
          auto t1 = clock::now();
          d_time += std::chrono::duration<double>(t1 - t0).count() ;
       } else {
-         auto t0 = clock::now();
          unsigned char tmp[FSST_MAXHEADER];
+         auto t0 = clock::now();
          fsst_encoder_t* encoder = Btrfsst_create(1, &srcLen[swap],
                                         const_cast<const unsigned char **>(&srcBuf[swap]), 0, &opt);
-
+         
          size_t hdr = fsst_export(encoder, tmp);
+         auto t1 = clock::now();
          if (Btrfsst_compress(encoder, 1, &srcLen[swap], const_cast<const unsigned char **>(&srcBuf[swap]),
                                                    FSST_MEMBUF * 2, dstMem[swap] + FSST_MAXHEADER + 3,
                                                    &dstLen[swap], &dstBuf[swap], &opt)<1)
             return -1;
+         auto t2 = clock::now();
          dstLen[swap] += 3 + hdr;
          dstBuf[swap] -= 3 + hdr;
          SERIALIZE(dstLen[swap],dstBuf[swap]); // block starts with size
          copy(tmp, tmp+hdr, dstBuf[swap]+3); // then the header (followed by the compressed bytes which are already there)
          fsst_destroy(encoder);
-         auto t1 = clock::now();
-         d_time += std::chrono::duration<double>(t1 - t0).count() ;
+         d_time += std::chrono::duration<double>(t2 - t0).count() ;
       }
       srcTot += srcLen[swap];
       dstTot += dstLen[swap];
