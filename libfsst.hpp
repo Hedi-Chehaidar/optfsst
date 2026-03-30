@@ -350,16 +350,18 @@ struct SymbolTable {
                                  : (1u + (litCode < FSST_CODE_BASE));
          u32 bestCost = litEmit + dpCost[i + 1];
          u16 bestCode = litCode;
-         
+         u8  chosenLen = 1;
          u16 key = make2(data, n, (size_t)i);
          Bucket bk = bucket2[key];
          for (u32 p = bk.first; p < bk.first + bk.count; ++p) {
             u64 diff = (w ^ candBytes[p]) & candMasks[p];
+            u8 len = candLen[p];
             u32 match = (diff == 0);
             u32 cost = 1u + dpCost[i + candLen[p]];
-            u32 take = match & (cost <= bestCost);
+            u32 take = match & (cost < bestCost | ((cost == bestCost) & (len >= chosenLen)));
             bestCost = take ? cost : bestCost;
             bestCode = take ? candCode[p] : bestCode;
+            chosenLen = take ? len : chosenLen;
          }
 
          dpCost[i] = bestCost;

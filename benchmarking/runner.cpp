@@ -64,10 +64,8 @@ int main() {
     out1 << "configuration,Time,file\n";
     std::ofstream out2("./csv/decompression_speed.csv");
     out2 << "configuration,Time,file\n";
-
     for (const auto& bin : binaries) { // only one binary for now
         for (const auto& file : files) {
-
             for (const auto& cfg : configs) {
                 // compression
                 double comp_time = 0;
@@ -84,7 +82,6 @@ int main() {
                     std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
                     comp_time += std::stod(stdout_text);
                 }
-
                 comp_time /= 5;
 
                 double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
@@ -115,7 +112,6 @@ int main() {
                 
                 
             }
-
 
         }
         
