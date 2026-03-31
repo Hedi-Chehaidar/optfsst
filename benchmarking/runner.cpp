@@ -64,8 +64,11 @@ int main() {
     out1 << "configuration,Time,file\n";
     std::ofstream out2("./csv/decompression_speed.csv");
     out2 << "configuration,Time,file\n";
+    double improvement = 0, mx = 0;
     for (const auto& bin : binaries) { // only one binary for now
         for (const auto& file : files) {
+            int pos = 0;
+            double cfs[2] = {0,0};
             for (const auto& cfg : configs) {
                 // compression
                 double comp_time = 0;
@@ -82,6 +85,7 @@ int main() {
                     std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
                     comp_time += std::stod(stdout_text);
                 }
+                //cfs[pos++] = comp_time;
                 comp_time /= 5;
 
                 double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
@@ -113,10 +117,13 @@ int main() {
                 
             }
 
+            //improvement += cfs[1] / cfs[0];
+            //mx = std::max(mx, cfs[1] / cfs[0]);
         }
         
     }
     
     std::cout << "runner finished" << std::endl;
+    //std::cout << improvement / files.size() << " " << mx << std::endl;
     return 0;
 }

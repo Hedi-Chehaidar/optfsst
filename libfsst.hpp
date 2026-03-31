@@ -32,7 +32,6 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <unordered_map>
-
 using namespace std;
 
 #include "fsst.h" // the official FSST API -- also usable by C mortals
@@ -96,6 +95,27 @@ inline u64 symbol_len_mask(u32 len) {
    assert(len >= 1 && len <= 8);
    return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
 }
+
+inline u32 round_up_8(u32 x) {
+   return (x + 7u) & ~7u;
+}
+
+inline u64 packTieCode(u32 len, u32 code) {
+   // lower is better
+   // len 8 wins over len 7 on equal cost because (8-len) is smaller
+   return (((u64)(8 - len)) << 9) | (u64)code;
+}
+
+static constexpr u32 DP_KEY_SHIFT = 12; // 3 bits tie + 9 bits code
+static constexpr u32 DP_INF_COST  = 0x3fffffff;
+
+static inline u64 packDPKey(u32 cost, u32 len, u32 code) {
+   return ((u64)cost << DP_KEY_SHIFT) | (((u64)(8 - len)) << 9) | (u64)code;
+}
+
+extern bool 
+fsst_hasAVX512(); // runtime check for avx512 capability
+
 
 struct Symbol {
    static const unsigned maxLength = 8;
@@ -203,14 +223,16 @@ struct SymbolTable {
    u16 lenHisto[FSST_CODE_BITS]; // lenHisto[x] is the amount of symbols of byte-length (x+1) in this SymbolTable
 
    struct Bucket {
-      u32 first;
-      u32 count;
+      u32 first;   // first candidate index
+      u32 count;   // real number of candidates
+      u32 count8;  // rounded up to multiple of 8
 
-      Bucket() : first(0), count(0) {}
-      void clear() { first = 0; count = 0; }
+      Bucket() : first(0), count(0), count8(0) {}
+      void clear() { first = 0; count = 0; count8 = 0; }
       bool empty() const { return count == 0; }
       u32 begin() const { return first; }
       u32 end() const { return first + count; }
+      u32 end8()  const { return first + count8; }
    };
 
    // Bucketed candidate index for DP.
@@ -221,6 +243,11 @@ struct SymbolTable {
    vector<u64> candMasks;
    vector<u16> candCode;
    vector<u8>  candLen;
+
+   // extra arrays for future AVX-512 DP
+   vector<u32> candLenIdx32;   // len-1, used to permute dpCost[i+1..i+8]
+   vector<u64> candTieCode64;  // packed (8-len, code)
+   vector<u64> candValid64;    // 1 = real candidate, 0 = padded dummy
 
    bool bucketReadyTrain = false;  // symbols live at [FSST_CODE_BASE .. FSST_CODE_BASE+nSymbols)
    bool bucketReadyFinal = false;  // symbols live at [0 .. nSymbols)
@@ -238,6 +265,10 @@ struct SymbolTable {
       candCode.clear();
       candLen.clear();
 
+      candLenIdx32.clear();
+      candTieCode64.clear();
+      candValid64.clear();
+
       bucketReadyTrain = false;
       bucketReadyFinal = false;
    }
@@ -252,12 +283,17 @@ struct SymbolTable {
    }
 
    static inline void fillCandidateArrays(const Symbol& s, u16 code,
-                                          u64& outBytes, u64& outMask,
-                                          u16& outCode, u8& outLen) {
-      outBytes = s.load_num();
-      outMask  = symbol_len_mask(s.length());
-      outCode  = code;
-      outLen   = (u8) s.length();
+                                       u64& outBytes, u64& outMask,
+                                       u16& outCode, u8& outLen,
+                                       u32& outLenIdx32, u64& outTieCode64, u64& outValid64) {
+      u32 len = s.length();
+      outBytes     = s.load_num();
+      outMask      = symbol_len_mask(len);
+      outCode      = code;
+      outLen       = (u8)len;
+      outLenIdx32  = len - 1;              // dp window index: dpCost[i+len] == dpWin[len-1]
+      outTieCode64 = packTieCode(len, code);
+      outValid64   = 1;
    }
 
    void rebuildBuckets(bool finalLayout) {
@@ -285,15 +321,20 @@ struct SymbolTable {
       // prefix sum -> bucket ranges
       u32 total = 0;
       for (u32 k = 0; k < 65536; ++k) {
-         bucket2[k].first = total;
-         bucket2[k].count = hist[k];
-         total += hist[k];
+         bucket2[k].first  = total;
+         bucket2[k].count  = hist[k];
+         bucket2[k].count8 = round_up_8(hist[k]);
+         total += bucket2[k].count8;
       }
 
       candBytes.resize(total);
       candMasks.resize(total);
       candCode.resize(total);
       candLen.resize(total);
+
+      candLenIdx32.resize(total);
+      candTieCode64.resize(total);
+      candValid64.resize(total);
 
       // current write position per bucket
       vector<u32> next(65536, 0);
@@ -304,7 +345,8 @@ struct SymbolTable {
 
          fillCandidateArrays(s, code,
                              candBytes[p], candMasks[p],
-                             candCode[p], candLen[p]);
+                             candCode[p], candLen[p],
+                             candLenIdx32[p], candTieCode64[p], candValid64[p]);
       };
 
       if (finalLayout) {
@@ -325,12 +367,40 @@ struct SymbolTable {
          bucketReadyTrain = true;
          bucketReadyFinal = false;
       }
+
+      // fill padded dummy entries so AVX-512 can safely read in chunks of 8
+      for (u32 k = 0; k < 65536; ++k) {
+         u32 begin = bucket2[k].first + bucket2[k].count;
+         u32 end   = bucket2[k].first + bucket2[k].count8;
+         for (u32 p = begin; p < end; ++p) {
+            candBytes[p]     = 0;
+            candMasks[p]     = 0;
+            candCode[p]      = 0;
+            candLen[p]       = 1;
+            candLenIdx32[p]  = 0;
+            candTieCode64[p] = 0;
+            candValid64[p]   = 0;  // marks dummy
+         }
+      }
    }
 
    // Build DP parse for a byte sequence (n bytes).
    // If finalLayout==false: escape detection is (code < FSST_CODE_BASE).
    // If finalLayout==true : escape detection is (code == 511)  (as produced by finalize()).
-   inline void buildDP(const u8* data, size_t n, bool finalLayout) {
+   void buildDP_avx512(const u8* data, size_t n, bool finalLayout);
+
+   void buildDP(const u8* data, size_t n, bool finalLayout) {
+      if (fsst_hasAVX512()) {
+         cout << "has avx512" << endl;
+         buildDP_avx512(data, n, finalLayout);
+      } else {
+         buildDP_scalar(data, n, finalLayout);
+      }
+   }
+
+   
+
+   void buildDP_scalar(const u8* data, size_t n, bool finalLayout) {
       // ensure buckets are built for the current layout
       if (finalLayout) {
          if (!bucketReadyFinal) rebuildBuckets(true);
@@ -654,8 +724,7 @@ struct SIMDjob {
    u64 out:19,pos:9,end:18,cur:18; // cur/end is input offsets (2^18=256KB), out is output offset (2^19=512KB)  
 };
 
-extern bool 
-fsst_hasAVX512(); // runtime check for avx512 capability
+
 
 extern size_t 
 fsst_compressAVX512(

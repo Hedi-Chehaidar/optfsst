@@ -33,7 +33,7 @@ bool fsst_hasAVX512() {
 namespace libfsst {
 bool fsst_hasAVX512() {
    int info[4];
-    __cpuid_count(0x00000007, 0, info[0], info[1], info[2], info[3]);
+   __cpuid_count(0x00000007, 0, info[0], info[1], info[2], info[3]);
    return (info[1]>>16)&1;
 }
 }  // namespace libfsst
@@ -146,5 +146,101 @@ size_t fsst_compressAVX512(SymbolTable &symbolTable, u8* codeBase, u8* symbolBas
 #endif
    return processed;
 }
+
+void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
+      #ifdef __AVX512F__
+      if (finalLayout) {
+         if (!bucketReadyFinal) rebuildBuckets(true);
+      } else {
+         if (!bucketReadyTrain) rebuildBuckets(false);
+      }
+
+      dpCost.resize(n + 8);
+      for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
+      dpChoice.resize(n);
+
+      const __m512i VZERO64 = _mm512_setzero_si512();
+      const __m512i VONE32  = _mm512_set1_epi32(1);
+      const __m512i VINF32  = _mm512_set1_epi32((int)DP_INF_COST);
+
+      const __m512i REDUCE4 = _mm512_setr_epi64(4,5,6,7,0,1,2,3);
+      const __m512i REDUCE2 = _mm512_setr_epi64(2,3,0,1,6,7,4,5);
+      const __m512i REDUCE1 = _mm512_setr_epi64(1,0,3,2,5,4,7,6);
+
+      for (int i = (int)n - 1; i >= 0; --i) {
+         u64 w = load_u64_zero_padded(data + i, n - i);
+         u8 b = data[i];
+
+         u16 litCode = byteCodes[b] & FSST_CODE_MASK;
+         u32 litEmit = finalLayout ? (1u + (litCode == 511)) : (1u + (litCode < FSST_CODE_BASE));
+         u32 litCost = litEmit + dpCost[i + 1];
+         u64 litKey  = packDPKey(litCost, 1, litCode);
+
+         __m512i bestKeyV = _mm512_set1_epi64((long long)litKey);
+         __m512i WV       = _mm512_set1_epi64((long long)w);
+
+         // local DP window: lane j contains dpCost[i+1+j], only low 8 lanes matter
+         __m512i dpWin = _mm512_setr_epi32(
+            dpCost[i+1], dpCost[i+2], dpCost[i+3], dpCost[i+4],
+            dpCost[i+5], dpCost[i+6], dpCost[i+7], dpCost[i+8],
+            0,0,0,0,0,0,0,0
+         );
+
+         u16 key = make2(data, n, (size_t)i);
+         Bucket bk = bucket2[key];
+
+         for (u32 p = bk.first; p < bk.first + bk.count8; p += 8) {
+            __m512i bytesV = _mm512_loadu_si512((const void*)&candBytes[p]);
+            __m512i masksV = _mm512_loadu_si512((const void*)&candMasks[p]);
+            __m512i diffV  = _mm512_and_si512(_mm512_xor_si512(WV, bytesV), masksV);
+
+            __mmask8 matchMask = _mm512_cmpeq_epi64_mask(diffV, VZERO64);
+
+            __m512i validV = _mm512_loadu_si512((const void*)&candValid64[p]);
+            __mmask8 validMask = ~_mm512_cmpeq_epi64_mask(validV, VZERO64);
+
+            matchMask &= validMask;
+
+            __m512i idxV = _mm512_maskz_loadu_epi32(0x00FF, &candLenIdx32[p]);
+            __m512i nxtV = _mm512_permutexvar_epi32(idxV, dpWin);
+
+            __m512i cost32V = _mm512_add_epi32(nxtV, VONE32);
+            cost32V = _mm512_mask_mov_epi32(VINF32, (__mmask16)matchMask, cost32V);
+
+            __m256i cost32Lo = _mm512_castsi512_si256(cost32V);
+            __m512i cost64V  = _mm512_cvtepu32_epi64(cost32Lo);
+
+            __m512i tieCodeV = _mm512_loadu_si512((const void*)&candTieCode64[p]);
+            __m512i keyV     = _mm512_or_si512(_mm512_slli_epi64(cost64V, 12), tieCodeV);
+
+            bestKeyV = _mm512_min_epi64(bestKeyV, keyV);
+         }
+
+         // horizontal reduction over 8 lanes
+         __m512i tmp = _mm512_permutexvar_epi64(REDUCE4, bestKeyV);
+         bestKeyV = _mm512_min_epi64(bestKeyV, tmp);
+
+         tmp = _mm512_permutexvar_epi64(REDUCE2, bestKeyV);
+         bestKeyV = _mm512_min_epi64(bestKeyV, tmp);
+
+         tmp = _mm512_permutexvar_epi64(REDUCE1, bestKeyV);
+         bestKeyV = _mm512_min_epi64(bestKeyV, tmp);
+
+         u64 bestKey;
+         _mm_storel_epi64((__m128i*)&bestKey, _mm512_castsi512_si128(bestKeyV));
+
+         dpCost[i]   = (u32)(bestKey >> 12);
+         dpChoice[i] = (u16)(bestKey & FSST_CODE_MASK);
+      }
+
+      #else
+         (void) data;
+         (void) n;
+         (void) finalLayout;
+      #endif
+      return;
+   }
+
+
 }  // namespace libfsst
 
