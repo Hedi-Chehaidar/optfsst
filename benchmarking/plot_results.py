@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import sys 
+
+metric = ""
 
 def main(csv_path: str):
     df = pd.read_csv(csv_path)
@@ -53,11 +56,15 @@ def main(csv_path: str):
         )
 
     ax.set_xlabel("Configuration")
-    ax.set_ylabel("Decompression speed [MB/s]")
+    if metric[0] == 'c':
+        ax.set_ylabel("Compression speed [MB/s]")
+    else :
+        ax.set_ylabel("Decompression speed [MB/s]")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
-    out_png2 = "./plots/decompression_speed_dbtext.png"
+    out_png2 = "./plots/" + metric + ".png"
     plt.savefig(out_png2, dpi=300)
 
 if __name__ == "__main__":
-    main("./csv/decompression_speed_dbtext.csv")
+    metric = sys.argv[1]
+    main("./csv/"+ metric +".csv")
