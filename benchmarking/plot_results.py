@@ -53,11 +53,11 @@ def main(csv_path: str):
         )
 
     ax.set_xlabel("Configuration")
-    ax.set_ylabel("Compression speed [MB/s]")
+    ax.set_ylabel("Decompression speed [MB/s]")
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
-    out_png2 = "./plots/compression_speed.png"
+    out_png2 = "./plots/decompression_speed_dbtext.png"
     plt.savefig(out_png2, dpi=300)
 
 if __name__ == "__main__":
-    main("./csv/compression_speed.csv")
+    main("./csv/decompression_speed_dbtext.csv")

@@ -45,7 +45,7 @@ int main() {
     // Input files (one file per run).
     std::vector<std::string> files;
     
-    std::string path = "../data/refined";
+    std::string path = "../fsst-paper/dbtext";
     
     for (const auto& entry : fs::recursive_directory_iterator(path)) {
         if(entry.is_regular_file())
@@ -60,9 +60,9 @@ int main() {
     // Output CSV path
 
 
-    std::ofstream out1("./csv/compression_speed.csv");
+    std::ofstream out1("./csv/compression_speed_dbtext.csv");
     out1 << "configuration,Time,file\n";
-    std::ofstream out2("./csv/decompression_speed.csv");
+    std::ofstream out2("./csv/decompression_speed_dbtext.csv");
     out2 << "configuration,Time,file\n";
     double improvement = 0, mx = 0;
     for (const auto& bin : binaries) { // only one binary for now
