@@ -3,7 +3,8 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BUILD_DIR="$ROOT_DIR/build"
+BUILD_DIR_AVX="$ROOT_DIR/build-avx512"
+BUILD_DIR_NOAVX="$ROOT_DIR/build-noavx512"
 BENCH_DIR="$ROOT_DIR/benchmarking"
 
 step() {
@@ -17,12 +18,19 @@ fail() {
 
 trap 'fail "run.sh failed at line $LINENO"' ERR
 
-step "Configuring build"
-rm -rf "$BUILD_DIR"
-cmake -S "$ROOT_DIR" -B "$BUILD_DIR"
+step "Configuring AVX build"
+rm -rf "$BUILD_DIR_AVX"
+cmake -S "$ROOT_DIR" -B "$BUILD_DIR_AVX"
 
-step "Building fsst"
-cmake --build "$BUILD_DIR" -j
+step "Building AVX fsst"
+cmake --build "$BUILD_DIR_AVX" -j
+
+step "Configuring non-AVX build"
+rm -rf "$BUILD_DIR_NOAVX"
+cmake -S "$ROOT_DIR" -B "$BUILD_DIR_NOAVX" -DFSST_DISABLE_AVX512=ON
+
+step "Building non-AVX fsst"
+cmake --build "$BUILD_DIR_NOAVX" -j
 
 step "Building benchmark runner"
 g++ "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"

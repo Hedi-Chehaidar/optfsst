@@ -1,7 +1,16 @@
 .venv
 
 build/
+build-avx512/
+build-noavx512/
+build-oldavxdp/
 data/raw/
 data/refined/
 data/refined_all/
 benchmarking/prv/
+benchmarking/runner
+benchmarking/verify_dp
+benchmarking/smoke_out
+benchmarking/smoke_out2
+benchmarking/tmp_out_*
+benchmarking/tmp_out2_*

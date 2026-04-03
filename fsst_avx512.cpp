@@ -17,7 +17,11 @@
 // You can contact the authors via the FSST source repository : https://github.com/cwida/fsst
 #include "libfsst.hpp"
 
-#if defined(__x86_64__) || defined(_M_X64)
+#ifdef FSST_DISABLE_AVX512
+namespace libfsst {
+bool fsst_hasAVX512() { return false; }
+}  // namespace libfsst
+#elif defined(__x86_64__) || defined(_M_X64)
 #include <immintrin.h>
 
 #ifdef _WIN32
@@ -243,4 +247,3 @@ void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
 
 
 }  // namespace libfsst
-

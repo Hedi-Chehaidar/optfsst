@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(btrfsst)
 
+option(FSST_DISABLE_AVX512 "Disable AVX-512 code paths and runtime dispatch" OFF)
+
 find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -39,6 +41,13 @@ add_executable(binary fsst.cpp)
 target_link_libraries (binary LINK_PUBLIC fsst)
 target_link_libraries (binary LINK_PUBLIC Threads::Threads)
 set_target_properties(binary PROPERTIES OUTPUT_NAME fsst)
+
+if(FSST_DISABLE_AVX512)
+    target_compile_definitions(fsst PRIVATE FSST_DISABLE_AVX512=1)
+    target_compile_definitions(binary PRIVATE FSST_DISABLE_AVX512=1)
+    target_compile_options(fsst PRIVATE -mno-avx512f -mno-avx512bw -mno-avx512vl -mno-avx512dq -mno-avx512cd)
+    target_compile_options(binary PRIVATE -mno-avx512f -mno-avx512bw -mno-avx512vl -mno-avx512dq -mno-avx512cd)
+endif()
 
 
 #add_library(fsst12 libfsst12.cpp)

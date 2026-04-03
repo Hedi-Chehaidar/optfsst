@@ -12,6 +12,11 @@ struct Config {
     std::string args;     // arguments passed to the binary for this config
 };
 
+struct BinaryConfig {
+    std::string label;    // build label, e.g. w/ AVX or w/o AVX
+    std::string path;     // path to executable
+};
+
 static std::string trim(std::string s) {
     auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
@@ -82,10 +87,9 @@ static double parse_timing_output(const std::string& cmd, int exit_code, const s
 
 int main() {
 
-    // One or more binaries to benchmark (paths to executables).
-    const std::vector<std::string> binaries = {
-        "../build/fsst"
-        //""
+    const std::vector<BinaryConfig> binaries = {
+        {"w/o AVX", "../build-noavx512/fsst"},
+        {"w/ AVX", "../build-avx512/fsst"},
     };
 
     // Input files (one file per run).
@@ -111,20 +115,21 @@ int main() {
     std::ofstream out2("./csv/decompression_speed_dbtext.csv");
     out2 << "configuration,Time,file\n";
     double improvement = 0, mx = 0;
-    for (const auto& bin : binaries) { // only one binary for now
+    for (const auto& binary : binaries) {
         for (const auto& file : files) {
             int pos = 0;
             double cfs[2] = {0,0};
             for (const auto& cfg : configs) {
+                const std::string config_name = cfg.name + " (" + binary.label + ")";
                 // compression
                 double comp_time = 0;
 
                 std::ostringstream cmd;
-                cmd << bin;
+                cmd << binary.path;
                 cmd << " " << cfg.args;
                 cmd << " " << file;
                 //output file 
-                cmd << " ../build/out";
+                cmd << " ./tmp_out_" << pos;
             
                 for(int i = 0; i < 5; i++) {
                     int exit_code = 0;
@@ -136,14 +141,14 @@ int main() {
 
                 double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
 
-                out1 << cfg.name << ","
+                out1 << config_name << ","
                     << comp_speed << ","
                     << file << "\n";
 
                 // decompression
                 double decomp_time = 0;
                 std::ostringstream cmd2;
-                cmd2 << bin << " -d ../build/out ../build/out2";
+                cmd2 << binary.path << " -d ./tmp_out_" << pos << " ./tmp_out2_" << pos;
 
                 for(int i = 0; i < 5; i++) {
                     int exit_code = 0;
@@ -154,13 +159,11 @@ int main() {
                 decomp_time /= 5;
                 double decomp_speed = fs::file_size(file) / 1000000.0 / decomp_time;
                 
-                out2 << cfg.name << ","
+                out2 << config_name << ","
                     << decomp_speed << ","
                     << file << "\n";
 
-                
-                
-                
+                pos++;
             }
 
             //improvement += cfs[1] / cfs[0];
