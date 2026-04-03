@@ -1,3 +1,5 @@
+.venv
+
 build/
 data/raw/
 data/refined/

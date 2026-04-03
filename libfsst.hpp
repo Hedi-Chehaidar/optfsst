@@ -391,7 +391,6 @@ struct SymbolTable {
 
    void buildDP(const u8* data, size_t n, bool finalLayout) {
       if (fsst_hasAVX512()) {
-         cout << "has avx512" << endl;
          buildDP_avx512(data, n, finalLayout);
       } else {
          buildDP_scalar(data, n, finalLayout);

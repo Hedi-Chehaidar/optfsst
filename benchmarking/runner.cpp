@@ -12,6 +12,12 @@ struct Config {
     std::string args;     // arguments passed to the binary for this config
 };
 
+static std::string trim(std::string s) {
+    auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
+    s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
+    return s;
+}
 
 // Run command, capture stdout, measure wall time ms.
 static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code) {
@@ -30,8 +36,48 @@ static std::string run_and_capture_stdout(const std::string& cmd, int& exit_code
     if (WIFEXITED(rc)) exit_code = WEXITSTATUS(rc);
     else exit_code = rc;
     #endif
-    assert(rc == 0);
     return output;
+}
+
+static double parse_timing_output(const std::string& cmd, int exit_code, const std::string& stdout_text) {
+    std::string trimmed = trim(stdout_text);
+    if (exit_code != 0) {
+        std::cerr << "Command failed with exit code " << exit_code << "\n";
+        std::cerr << "Command: " << cmd << "\n";
+        std::cerr << "Captured stdout: " << (trimmed.empty() ? "<empty>" : trimmed) << "\n";
+        throw std::runtime_error("benchmark command failed");
+    }
+    if (trimmed.empty()) {
+        std::cerr << "Command produced empty stdout\n";
+        std::cerr << "Command: " << cmd << "\n";
+        throw std::runtime_error("benchmark command produced empty stdout");
+    }
+    try {
+        std::istringstream iss(trimmed);
+        std::string token;
+        std::string last_token;
+        while (iss >> token) last_token = token;
+        if (last_token.empty()) {
+            std::cerr << "Command produced non-numeric stdout\n";
+            std::cerr << "Command: " << cmd << "\n";
+            std::cerr << "Captured stdout: " << trimmed << "\n";
+            throw std::runtime_error("benchmark command produced non-numeric stdout");
+        }
+        size_t parsed = 0;
+        double value = std::stod(last_token, &parsed);
+        if (parsed != last_token.size()) {
+            std::cerr << "Command produced non-numeric stdout\n";
+            std::cerr << "Command: " << cmd << "\n";
+            std::cerr << "Captured stdout: " << trimmed << "\n";
+            throw std::runtime_error("benchmark command produced non-numeric stdout");
+        }
+        return value;
+    } catch (const std::exception&) {
+        std::cerr << "Failed to parse stdout as double\n";
+        std::cerr << "Command: " << cmd << "\n";
+        std::cerr << "Captured stdout: " << trimmed << "\n";
+        throw;
+    }
 }
 
 int main() {
@@ -83,7 +129,7 @@ int main() {
                 for(int i = 0; i < 5; i++) {
                     int exit_code = 0;
                     std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
-                    comp_time += std::stod(stdout_text);
+                    comp_time += parse_timing_output(cmd.str(), exit_code, stdout_text);
                 }
                 //cfs[pos++] = comp_time;
                 comp_time /= 5;
@@ -102,7 +148,7 @@ int main() {
                 for(int i = 0; i < 5; i++) {
                     int exit_code = 0;
                     std::string stdout_text = run_and_capture_stdout(cmd2.str(), exit_code);
-                    decomp_time += std::stod(stdout_text);
+                    decomp_time += parse_timing_output(cmd2.str(), exit_code, stdout_text);
                 }
 
                 decomp_time /= 5;
