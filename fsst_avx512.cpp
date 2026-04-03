@@ -170,10 +170,20 @@ void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
       const __m512i REDUCE4 = _mm512_setr_epi64(4,5,6,7,0,1,2,3);
       const __m512i REDUCE2 = _mm512_setr_epi64(2,3,0,1,6,7,4,5);
       const __m512i REDUCE1 = _mm512_setr_epi64(1,0,3,2,5,4,7,6);
+      // Rolling DP window update:
+      // after putting new dpCost[i] in lane 15,
+      // low 8 lanes become [15,0,1,2,3,4,5,6]
+      const __m512i SHIFT_DP = _mm512_setr_epi32(
+         15, 0, 1, 2, 3, 4, 5, 6,
+         7, 8, 9,10,11,12,13,14
+      );
+      __m512i dpWin = _mm512_setzero_si512();
 
+      u64 w = 0;
       for (int i = (int)n - 1; i >= 0; --i) {
-         u64 w = load_u64_zero_padded(data + i, n - i);
-         u8 b = data[i];
+         w = (w << 8) | data[i];
+         u8 b = (u8)w;
+         u16 key = (u16)w;
 
          u16 litCode = byteCodes[b] & FSST_CODE_MASK;
          u32 litEmit = finalLayout ? (1u + (litCode == 511)) : (1u + (litCode < FSST_CODE_BASE));
@@ -183,14 +193,6 @@ void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
          __m512i bestKeyV = _mm512_set1_epi64((long long)litKey);
          __m512i WV       = _mm512_set1_epi64((long long)w);
 
-         // local DP window: lane j contains dpCost[i+1+j], only low 8 lanes matter
-         __m512i dpWin = _mm512_setr_epi32(
-            dpCost[i+1], dpCost[i+2], dpCost[i+3], dpCost[i+4],
-            dpCost[i+5], dpCost[i+6], dpCost[i+7], dpCost[i+8],
-            0,0,0,0,0,0,0,0
-         );
-
-         u16 key = make2(data, n, (size_t)i);
          Bucket bk = bucket2[key];
 
          for (u32 p = bk.first; p < bk.first + bk.count8; p += 8) {
@@ -235,6 +237,13 @@ void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
 
          dpCost[i]   = (u32)(bestKey >> 12);
          dpChoice[i] = (u16)(bestKey & FSST_CODE_MASK);
+
+         // Update rolling DP window for next iteration (i-1):
+         // current low lanes are [dp[i+1], ..., dp[i+8]]
+         // write dp[i] into lane 15, then permute so next low lanes are
+         // [dp[i], dp[i+1], ..., dp[i+7]]
+         dpWin = _mm512_mask_set1_epi32(dpWin, 0x8000, (int)bestCost);
+         dpWin = _mm512_permutexvar_epi32(SHIFT_DP, dpWin);
       }
 
       #else

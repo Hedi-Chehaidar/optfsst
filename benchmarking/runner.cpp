@@ -4,6 +4,8 @@
   #include <windows.h>
   #define popen _popen
   #define pclose _pclose
+#else
+  #include <sys/wait.h>
 #endif
 
 namespace fs = std::filesystem;
@@ -22,6 +24,38 @@ static std::string trim(std::string s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
     s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
     return s;
+}
+
+static bool files_equal(const fs::path& a, const fs::path& b) {
+    if (!fs::exists(a) || !fs::exists(b)) return false;
+    if (fs::file_size(a) != fs::file_size(b)) return false;
+
+    std::ifstream fa(a, std::ios::binary);
+    std::ifstream fb(b, std::ios::binary);
+    std::array<char, 1 << 20> ba, bb;
+
+    while (fa && fb) {
+        fa.read(ba.data(), ba.size());
+        fb.read(bb.data(), bb.size());
+        std::streamsize na = fa.gcount();
+        std::streamsize nb = fb.gcount();
+        if (na != nb) return false;
+        if (!std::equal(ba.begin(), ba.begin() + na, bb.begin())) return false;
+    }
+    return true;
+}
+
+static std::uintmax_t get_checked_file_size(const fs::path& p) {
+    std::ifstream f(p, std::ios::binary);
+    if (!f) {
+        throw std::runtime_error("cannot open output file: " + p.string());
+    }
+    f.seekg(0, std::ios::end);
+    auto size = static_cast<std::uintmax_t>(f.tellg());
+    if (size == static_cast<std::uintmax_t>(-1)) {
+        throw std::runtime_error("failed to determine file size: " + p.string());
+    }
+    return size;
 }
 
 // Run command, capture stdout, measure wall time ms.
@@ -107,6 +141,9 @@ int main() {
         {"BtrFSST", "--dp-train --prune --triples --dp-encode"},
     };
 
+    std::unordered_map<std::string, std::uintmax_t> btrfsst_reference_size;
+    std::unordered_map<std::string, double>         avg_cfs;
+
     // Output CSV path
 
 
@@ -114,11 +151,10 @@ int main() {
     out1 << "configuration,Time,file\n";
     std::ofstream out2("./csv/decompression_speed_dbtext.csv");
     out2 << "configuration,Time,file\n";
-    double improvement = 0, mx = 0;
+    
     for (const auto& binary : binaries) {
         for (const auto& file : files) {
             int pos = 0;
-            double cfs[2] = {0,0};
             for (const auto& cfg : configs) {
                 const std::string config_name = cfg.name + " (" + binary.label + ")";
                 // compression
@@ -136,7 +172,6 @@ int main() {
                     std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
                     comp_time += parse_timing_output(cmd.str(), exit_code, stdout_text);
                 }
-                //cfs[pos++] = comp_time;
                 comp_time /= 5;
 
                 double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
@@ -144,6 +179,21 @@ int main() {
                 out1 << config_name << ","
                     << comp_speed << ","
                     << file << "\n";
+
+                std::uintmax_t compressed_size = get_checked_file_size("./tmp_out_" + std::to_string(pos));
+                if (cfg.name == "BtrFSST") {
+                    auto it = btrfsst_reference_size.find(file);
+                    if (it == btrfsst_reference_size.end()) {
+                        btrfsst_reference_size[file] = compressed_size;
+                    } else if (it->second != compressed_size) {
+                        std::cerr << "BtrFSST compressed size mismatch for file " << file << "\n"
+                                << "expected " << it->second << ", got " << compressed_size
+                                << " for binary " << binary.label << "\n";
+                        throw std::runtime_error("BtrFSST compression factor mismatch");
+                    }
+                }
+
+                avg_cfs[config_name] += 1.0 * get_checked_file_size(file) / compressed_size;
 
                 // decompression
                 double decomp_time = 0;
@@ -163,16 +213,26 @@ int main() {
                     << decomp_speed << ","
                     << file << "\n";
 
+                if (!files_equal(file, "./tmp_out2_" + std::to_string(pos))) {
+                    std::cerr << "Mismatch after decompression for file " << file
+                            << ", config " << cfg.name
+                            << ", binary " << binary.label << "\n";
+                    throw std::runtime_error("decompression correctness failed");
+                }
+
                 pos++;
             }
 
-            //improvement += cfs[1] / cfs[0];
-            //mx = std::max(mx, cfs[1] / cfs[0]);
         }
         
     }
     
     std::cout << "runner finished" << std::endl;
-    //std::cout << improvement / files.size() << " " << mx << std::endl;
+
+    // output avg CFs 
+    std::cout << "Average compression factors:" << std::endl;
+    for(auto& p : avg_cfs) {
+        std::cout << p.first << " " << p.second / files.size() << std::endl;
+    }
     return 0;
 }

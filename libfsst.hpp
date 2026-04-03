@@ -79,18 +79,6 @@ inline uint64_t fsst_unaligned_load(u8 const* V) {
     return swap64_if_be(Ret);
 }
 
-inline uint64_t load_u64_zero_padded(const u8* p, size_t avail) {
-   uint64_t w = 0;
-   size_t n = (avail < 8) ? avail : 8;
-   memcpy(&w, p, n);              // copies only the bytes that exist
-   return swap64_if_be(w);        // keep the same little-endian logical layout as fsst_unaligned_load()
-}
-
-inline u16 make2(const u8* data, size_t n, size_t i) {
-   assert(i < n);
-   return (u16) data[i] | ((i + 1 < n) * ((u16)data[i + 1] << 8));   // same layout as Symbol::first2()
-}
-
 inline u64 symbol_len_mask(u32 len) {
    assert(len >= 1 && len <= 8);
    return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
@@ -410,17 +398,17 @@ struct SymbolTable {
       dpCost.resize(n + 8);
       for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
       dpChoice.resize(n);
-      
+      u64 w = 0;
       for (int i=(int)n-1; i>=0; --i) {
-         u64 w = load_u64_zero_padded(data + i, n - i);
-         u8 b = data[i];
+         w = (w << 8) | data[i];
+         u8 b = (u8)w;
+         u16 key = (u16)w;
          u16 litCode = byteCodes[b] & FSST_CODE_MASK;
          u32 litEmit = finalLayout ? (litCode == 511 ? 2u : 1u)
                                  : (1u + (litCode < FSST_CODE_BASE));
          u32 bestCost = litEmit + dpCost[i + 1];
          u16 bestCode = litCode;
          u8  chosenLen = 1;
-         u16 key = make2(data, n, (size_t)i);
          Bucket bk = bucket2[key];
          for (u32 p = bk.first; p < bk.first + bk.count; ++p) {
             u64 diff = (w ^ candBytes[p]) & candMasks[p];
