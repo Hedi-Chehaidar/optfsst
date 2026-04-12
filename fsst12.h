@@ -59,6 +59,17 @@ extern "C" {
 /* Data structure needed for compressing strings - use fsst_duplicate() to create thread-local copies. Use fsst_destroy() to free. */
 typedef void* fsst_encoder_t; /* opaque type - it wraps around a rather large (~3MB) C++ object */
 
+#define THRESHOLD (0)
+/* Btrfsst innovations as flags to allow flexibility in table construction and encoding */
+#define FSST_OPT_DP_TRAIN   (1u<<0)
+#define FSST_OPT_DP_ENCODE  (1u<<1)
+#define FSST_OPT_TRIPLES    (1u<<2)
+#define FSST_OPT_PRUNE      (1u<<3)
+
+typedef struct {
+  unsigned flags;
+} fsst_options_t;
+
 /* Data structure needed for decompressing strings - read-only and thus can be shared between multiple decompressing threads. */
 typedef struct {
    unsigned long long version;      /* version id */
@@ -73,6 +84,15 @@ fsst_create(
    const unsigned long lenIn[],   /* IN: byte-lengths of the inputs */
    const unsigned char *strIn[],  /* IN: string start pointers. */
    int dummy
+);
+
+fsst_encoder_t*
+Btrfsst_create(
+   unsigned long n,
+   const unsigned long lenIn[],
+   const unsigned char *strIn[],
+   int dummy,
+   const fsst_options_t* opt
 );
 
 /* Create another encoder instance, necessary to do multi-threaded encoding using the same dictionary. */ 
@@ -121,8 +141,21 @@ fsst_compress(
    unsigned char *strOut[]  /* OUT: output string start pointers. Will all point into [output,output+size). */
 );
 
+unsigned long
+Btrfsst_compress(
+   fsst_encoder_t *encoder,
+   unsigned long nstrings,
+   const unsigned long lenIn[],
+   const unsigned char *strIn[],
+   unsigned long outsize,
+   unsigned char *output,
+   unsigned long lenOut[],
+   unsigned char *strOut[],
+   const fsst_options_t* opt
+);
+
 /* Loads two codes out of the first 24 bits of the 32-bit value and writes their symbols to the output buffer. */
-inline void write_two_codes_aligned(const unsigned char *__restrict__ len, unsigned long*__restrict__ symbol,
+inline void write_two_codes_aligned(const unsigned char *__restrict__ len, unsigned long long*__restrict__ symbol,
                             unsigned char *__restrict__ strOut, unsigned long &posOut, const unsigned long size,
                             const unsigned int code) {
    const unsigned int code0 = code & 4095;
@@ -135,7 +168,7 @@ inline void write_two_codes_aligned(const unsigned char *__restrict__ len, unsig
 }
 
 /* Loads one code out of the first 12 bits of the 16-bit value and writes its symbol to the output buffer. */
-inline void write_one_code_aligned(const unsigned char *__restrict__ len, unsigned long*__restrict__ symbol,
+inline void write_one_code_aligned(const unsigned char *__restrict__ len, unsigned long long*__restrict__ symbol,
                                unsigned char *__restrict__ strOut, unsigned long &posOut, const unsigned long size,
                                unsigned short code) {
    code &= 4095;
@@ -154,7 +187,7 @@ fsst_decompress(
    unsigned char *output    /* OUT: memory buffer to put the decompressed string in. */
 ) {
    unsigned char*__restrict__ len = (unsigned char* __restrict__) decoder->len;
-   unsigned long*__restrict__ symbol = (unsigned long* __restrict__) decoder->symbol; 
+   unsigned long long*__restrict__ symbol = (unsigned long long* __restrict__) decoder->symbol; 
    unsigned char*__restrict__ strOut = (unsigned char* __restrict__) output;
    unsigned long posOut = 0, posIn = 0;
 #define FSST_UNALIGNED_STORE(dst,src) memcpy((unsigned long long*) (dst), &(src), sizeof(unsigned long long))

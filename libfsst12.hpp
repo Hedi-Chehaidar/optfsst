@@ -63,6 +63,15 @@ inline uint64_t fsst_unaligned_load(u8 const* V) {
     return Ret;
 }
 
+inline u64 symbol_len_mask(u32 len) {
+   assert(len >= 1 && len <= 8);
+   return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
+}
+
+inline u32 round_up_8(u32 x) {
+   return (x + 7u) & ~7u;
+}
+
 struct Symbol {
    static const unsigned maxLength = 8;
 
@@ -136,6 +145,26 @@ struct SymbolMap {
    bool zeroTerminated;   // whether we are expecting zero-terminated strings (we then also produce zero-terminated compressed strings)
    u16 lenHisto[8];        // lenHisto[x] is the amount of symbols of byte-length (x+1) in this SymbolMap
 
+   struct Bucket {
+      u32 first;
+      u32 count;
+      u32 count8;
+
+      Bucket() : first(0), count(0), count8(0) {}
+      void clear() { first = 0; count = 0; count8 = 0; }
+      bool empty() const { return count == 0; }
+   };
+
+   Bucket bucket2[65536];
+   vector<u64> candBytes;
+   vector<u64> candMasks;
+   vector<u16> candCode;
+   vector<u8>  candLen;
+   bool bucketReady = false;
+
+   vector<u32> dpCost;
+   vector<u16> dpChoice;
+
    SymbolMap() : symbolCount(256), zeroTerminated(false) {
       // stuff done once at startup
       Symbol unused = Symbol(0,FSST_CODE_MASK); // single-char symbol, exception code
@@ -159,6 +188,9 @@ struct SymbolMap {
          shortCodes[i] = 4096 | (i & 255); // single-byte symbol
       memset(lenHisto, 0, sizeof(lenHisto)); // all unused
       lenHisto[0] = symbolCount = 256; // no need to clean symbols[] as no symbols are used
+      clearBuckets();
+      dpCost.clear();
+      dpChoice.clear();
    }
  
    u32 load() {
@@ -183,13 +215,15 @@ struct SymbolMap {
       assert(len > 1);
       s.set_code_len(symbolCount, len);
       if (len == 2) {
-         assert(shortCodes[s.first2()] == 4096 + s.first()); // cannot be in use
+         //assert(shortCodes[s.first2()] == 4096 + s.first()); // cannot be in use
+         if(shortCodes[s.first2()] != 4096 + s.first()) return false;
          shortCodes[s.first2()] = 8192 + symbolCount; // 8192 = (len == 2) << 12
       } else if (!hashInsert(s)) {
          return false;
       }
       symbols[symbolCount++] = s;
       lenHisto[len-1]++;
+      bucketReady = false;
       return true;
    }
    /// Find symbol in hash table, return code
@@ -207,6 +241,108 @@ struct SymbolMap {
       }
       u16 ret = hashFind(s);
       return ret?ret:shortCodes[s.first2()];
+   }
+
+   void clearBuckets() {
+      for (u32 i = 0; i < 65536; ++i)
+         bucket2[i].clear();
+      candBytes.clear();
+      candMasks.clear();
+      candCode.clear();
+      candLen.clear();
+      bucketReady = false;
+   }
+
+   static inline bool bucketableSymbol(const Symbol& s) {
+      return s.length() >= 2;
+   }
+
+   static inline u16 bucketKey(const Symbol& s) {
+      assert(s.length() >= 2);
+      return s.first2();
+   }
+
+   void rebuildBuckets() {
+      clearBuckets();
+
+      vector<u32> hist(65536, 0);
+      for (u32 code = 256; code < symbolCount; ++code) {
+         const Symbol& s = symbols[code];
+         if (!bucketableSymbol(s)) continue;
+         hist[bucketKey(s)]++;
+      }
+
+      u32 total = 0;
+      for (u32 k = 0; k < 65536; ++k) {
+         bucket2[k].first = total;
+         bucket2[k].count = hist[k];
+         bucket2[k].count8 = round_up_8(hist[k]);
+         total += bucket2[k].count8;
+      }
+
+      candBytes.resize(total);
+      candMasks.resize(total);
+      candCode.resize(total);
+      candLen.resize(total);
+
+      vector<u32> next(65536, 0);
+      for (u32 code = 256; code < symbolCount; ++code) {
+         const Symbol& s = symbols[code];
+         if (!bucketableSymbol(s)) continue;
+         u16 key = bucketKey(s);
+         u32 p = bucket2[key].first + next[key]++;
+         candBytes[p] = *(u64*) s.symbol;
+         candMasks[p] = symbol_len_mask(s.length());
+         candCode[p] = (u16) code;
+         candLen[p] = s.length();
+      }
+
+      for (u32 k = 0; k < 65536; ++k) {
+         u32 begin = bucket2[k].first + bucket2[k].count;
+         u32 end = bucket2[k].first + bucket2[k].count8;
+         for (u32 p = begin; p < end; ++p) {
+            candBytes[p] = 0;
+            candMasks[p] = 0;
+            candCode[p] = 0;
+            candLen[p] = 1;
+         }
+      }
+
+      bucketReady = true;
+   }
+
+   void buildDP_scalar(const u8* data, size_t n) {
+      if (!bucketReady) rebuildBuckets();
+
+      dpCost.resize(n + 8);
+      for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
+      dpChoice.resize(n);
+
+      u64 w = 0;
+      for (int i = (int)n - 1; i >= 0; --i) {
+         w = (w << 8) | data[i];
+         // In fsst12, the first 256 entries in symbols[] are the literal 1-byte symbols.
+         // The compressed representation may carry length bits in shortCodes/findExpansion(),
+         // but dpChoice stores the plain symbol code index used to look up symbols[].
+         u16 bestCode = (u16)(u8)w;
+         double bestCost = 1u + dpCost[i + 1];
+         u8 chosenLen = 1;
+
+         Bucket bk = bucket2[(u16)w];
+         for (u32 p = bk.first; p < bk.first + bk.count; ++p) {
+            if (((w ^ candBytes[p]) & candMasks[p]) != 0) continue;
+            u8 len = candLen[p];
+            u32 cost = 1u + dpCost[i + len];
+            if (cost < bestCost || (cost == bestCost && len >= chosenLen)) {
+               bestCost = cost;
+               bestCode = candCode[p];
+               chosenLen = len;
+            }
+         }
+
+         dpCost[i] = bestCost;
+         dpChoice[i] = bestCode;
+      }
    }
 };
 

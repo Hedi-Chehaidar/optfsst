@@ -1021,6 +1021,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
                                          const fsst_options_t* optp)
 {
    fsst_options_t opt = optp ? *optp : fsst_options_t{0};
+   unsigned train_flags = opt.flags & (FSST_OPT_DP_TRAIN | FSST_OPT_TRIPLES | FSST_OPT_PRUNE);
 
    u8* sampleBuf = new u8[FSST_SAMPLEMAXSZ];
    const size_t *sampleLen = lenIn;
@@ -1028,7 +1029,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
 
    Encoder *encoder = new Encoder();
 
-   if (opt.flags == 0) {
+   if (train_flags == 0) {
       encoder->symbolTable = shared_ptr<SymbolTable>(buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated));
    } else {
       encoder->symbolTable = shared_ptr<SymbolTable>(Btrfsst_buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated, opt));

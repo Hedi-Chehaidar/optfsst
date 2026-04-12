@@ -4,6 +4,8 @@ build/
 build-avx512/
 build-noavx512/
 build-oldavxdp/
+build12/
+build12-asan/
 data/raw/
 data/refined/
 data/refined_all/
@@ -14,3 +16,5 @@ benchmarking/smoke_out
 benchmarking/smoke_out2
 benchmarking/tmp_out_*
 benchmarking/tmp_out2_*
+benchmarking/tmp12_out_*
+benchmarking/tmp12_out2_*
