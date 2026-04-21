@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(btrfsst)
 
 option(FSST_DISABLE_AVX512 "Disable AVX-512 code paths and runtime dispatch" OFF)
+option(FSST_USE_TRIE_IMPL "Build FSST with the trie-based library implementation" OFF)
 
 find_package(Threads REQUIRED)
 
@@ -36,7 +37,12 @@ set_source_files_properties(
 )
 endif()
 
-add_library(fsst libfsst.cpp fsst_avx512.cpp fsst_avx512_unroll1.inc fsst_avx512_unroll2.inc fsst_avx512_unroll3.inc fsst_avx512_unroll4.inc)
+set(FSST_LIBRARY_SOURCE libfsst.cpp)
+if(FSST_USE_TRIE_IMPL)
+    set(FSST_LIBRARY_SOURCE libfsst_trie.cpp)
+endif()
+
+add_library(fsst ${FSST_LIBRARY_SOURCE} fsst_avx512.cpp fsst_avx512_unroll1.inc fsst_avx512_unroll2.inc fsst_avx512_unroll3.inc fsst_avx512_unroll4.inc)
 add_executable(binary fsst.cpp)
 target_link_libraries (binary LINK_PUBLIC fsst)
 target_link_libraries (binary LINK_PUBLIC Threads::Threads)

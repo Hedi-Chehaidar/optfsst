@@ -5,6 +5,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR_AVX="$ROOT_DIR/build-avx512"
 BUILD_DIR_NOAVX="$ROOT_DIR/build-noavx512"
+BUILD_DIR_TRIE_NOAVX="$ROOT_DIR/build-trie"
 BENCH_DIR="$ROOT_DIR/benchmarking"
 
 step() {
@@ -31,6 +32,13 @@ cmake -S "$ROOT_DIR" -B "$BUILD_DIR_NOAVX" -DFSST_DISABLE_AVX512=ON
 
 step "Building non-AVX fsst"
 cmake --build "$BUILD_DIR_NOAVX" -j
+
+step "Configuring trie build"
+rm -rf "$BUILD_DIR_TRIE_NOAVX"
+cmake -S "$ROOT_DIR" -B "$BUILD_DIR_TRIE_NOAVX" -DFSST_USE_TRIE_IMPL=ON -DFSST_DISABLE_AVX512=ON
+
+step "Building trie fsst"
+cmake --build "$BUILD_DIR_TRIE_NOAVX" -j
 
 step "Building benchmark runner"
 g++ "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"

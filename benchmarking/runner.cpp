@@ -124,6 +124,7 @@ int main() {
     const std::vector<BinaryConfig> binaries = {
         {"w/o AVX", "../build-noavx512/fsst"},
         {"w/ AVX", "../build-avx512/fsst"},
+        {"Trie", "../build-trie/fsst"},
     };
 
     // Input files (one file per run).
@@ -156,6 +157,7 @@ int main() {
         for (const auto& file : files) {
             int pos = 0;
             for (const auto& cfg : configs) {
+                if(binary.label == "Trie" && cfg.name == "FSST") continue;
                 const std::string config_name = cfg.name + " (" + binary.label + ")";
                 // compression
                 double comp_time = 0;

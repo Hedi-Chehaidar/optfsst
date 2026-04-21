@@ -121,7 +121,7 @@ int main() {
 
     const std::vector<Config> configs = {
         {"FSST12", ""},
-        {"BtrFSST12", /*"--dp-train --prune --triples*/"--dp-encode"},
+        {"BtrFSST12", "--dp-train --prune --triples --dp-encode"},
     };
 
     std::unordered_map<std::string, double> avg_cfs;
