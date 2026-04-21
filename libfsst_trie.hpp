@@ -32,6 +32,7 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <unordered_map>
+
 using namespace std;
 
 #include "fsst.h" // the official FSST API -- also usable by C mortals
@@ -78,32 +79,6 @@ inline uint64_t fsst_unaligned_load(u8 const* V) {
     memcpy(&Ret, V, sizeof(uint64_t)); // compiler will generate efficient code (unaligned load, where possible)
     return swap64_if_be(Ret);
 }
-
-inline u64 symbol_len_mask(u32 len) {
-   assert(len >= 1 && len <= 8);
-   return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
-}
-
-inline u32 round_up_8(u32 x) {
-   return (x + 7u) & ~7u;
-}
-
-inline u64 packTieCode(u32 len, u32 code) {
-   // lower is better
-   // len 8 wins over len 7 on equal cost because (8-len) is smaller
-   return (((u64)(8 - len)) << 9) | (u64)code;
-}
-
-static constexpr u32 DP_KEY_SHIFT = 12; // 3 bits tie + 9 bits code
-static constexpr u32 DP_INF_COST  = 0x3fffffff;
-
-static inline u64 packDPKey(u32 cost, u32 len, u32 code) {
-   return ((u64)cost << DP_KEY_SHIFT) | (((u64)(8 - len)) << 9) | (u64)code;
-}
-
-extern bool 
-fsst_hasAVX512(); // runtime check for avx512 capability
-
 
 struct Symbol {
    static const unsigned maxLength = 8;
@@ -210,219 +185,134 @@ struct SymbolTable {
    bool zeroTerminated;   // whether we are expecting zero-terminated strings (we then also produce zero-terminated compressed strings)
    u16 lenHisto[FSST_CODE_BITS]; // lenHisto[x] is the amount of symbols of byte-length (x+1) in this SymbolTable
 
-   struct Bucket {
-      u32 first;   // first candidate index
-      u32 count;   // real number of candidates
-      u32 count8;  // rounded up to multiple of 8
-
-      Bucket() : first(0), count(0), count8(0) {}
-      void clear() { first = 0; count = 0; count8 = 0; }
-      bool empty() const { return count == 0; }
-      u32 begin() const { return first; }
-      u32 end() const { return first + count; }
-      u32 end8()  const { return first + count8; }
+   // BtrFSST: Trie + DP parsing
+   struct TrieNode {
+      int symbolCode;      // code of a symbol ending here, -1 if none
+      int child[256];      // child indices, -1 if absent
+      TrieNode() : symbolCode(-1) {
+         for (int i=0;i<256;i++) child[i] = -1;
+      }
    };
-
-   // Bucketed candidate index for DP.
-   // We only store real symbols of length >= 2 here.
-   Bucket bucket2[65536];
-
-   vector<u64> candBytes;
-   vector<u64> candMasks;
-   vector<u16> candCode;
-   vector<u8>  candLen;
-
-   // extra arrays for future AVX-512 DP
-   vector<u32> candLenIdx32;   // len-1, used to permute dpCost[i+1..i+8]
-   vector<u64> candTieCode64;  // packed (8-len, code)
-   vector<u64> candValid64;    // 1 = real candidate, 0 = padded dummy
-
-   bool bucketReadyTrain = false;  // symbols live at [FSST_CODE_BASE .. FSST_CODE_BASE+nSymbols)
-   bool bucketReadyFinal = false;  // symbols live at [0 .. nSymbols)
 
    // DP working area
    vector<u32> dpCost;      // dpCost[i] = minimal encoded length of suffix starting at i
    vector<u16> dpChoice;    // dpChoice[i] = chosen code at i (pre-finalize: 0..511; final: 0..255 plus 511=escape)
 
-   void clearBuckets() {
-      for (u32 i = 0; i < 65536; ++i)
-         bucket2[i].clear();
+   // Trie storage (only built when needed)
+   vector<TrieNode> trie;
+   bool trieReadyTrain = false;  // trie represents pre-finalize codes (FSST_CODE_BASE..)
+   bool trieReadyFinal = false;  // trie represents final codes (0..nSymbols-1)
 
-      candBytes.clear();
-      candMasks.clear();
-      candCode.clear();
-      candLen.clear();
-
-      candLenIdx32.clear();
-      candTieCode64.clear();
-      candValid64.clear();
-
-      bucketReadyTrain = false;
-      bucketReadyFinal = false;
+   inline void trieReset() {
+      trie.clear();
+      trie.reserve((8 * 255 + 1));
+      trie.emplace_back(); // root
    }
 
-   static inline bool bucketableSymbol(const Symbol& s) {
-      return s.length() >= 2;
+   inline void trieInsertSymbolBytes(const Symbol& s, u16 code) {
+      int node = 0;
+      u32 L = s.length();
+      // Ignore "pseudo" symbols in the trie (we only store real symbols)
+      for (u32 i=0; i<L; i++) {
+         u8 b = (u8) s.val.str[i];
+         int& nxt = trie[node].child[b];
+         if (nxt == -1) {
+            nxt = (int) trie.size();
+            trie.emplace_back();
+         }
+         node = trie[node].child[b];
+      }
+      trie[node].symbolCode = (int) code;
    }
 
-   static inline u16 bucketKey(const Symbol& s) {
-      assert(s.length() >= 2);
-      return s.first2();
-   }
-
-   static inline void fillCandidateArrays(const Symbol& s, u16 code,
-                                       u64& outBytes, u64& outMask,
-                                       u16& outCode, u8& outLen,
-                                       u32& outLenIdx32, u64& outTieCode64, u64& outValid64) {
-      u32 len = s.length();
-      outBytes     = s.load_num();
-      outMask      = symbol_len_mask(len);
-      outCode      = code;
-      outLen       = (u8)len;
-      outLenIdx32  = len - 1;              // dp window index: dpCost[i+len] == dpWin[len-1]
-      outTieCode64 = packTieCode(len, code);
-      outValid64   = 1;
-   }
-
-   void rebuildBuckets(bool finalLayout) {
-      // reset previous content
-      clearBuckets();
-
-      // count how many candidates go into each 2-byte bucket
-      vector<u32> hist(65536, 0);
-
+   inline void rebuildTrie(bool finalLayout) {
+      trieReset();
       if (finalLayout) {
-         for (u32 code = 0; code < nSymbols; ++code) {
-            const Symbol& s = symbols[code];
-            if (!bucketableSymbol(s)) continue;
-            hist[bucketKey(s)]++;
+         // symbols[0..nSymbols) are real symbols after finalize()
+         for (u32 code=0; code<nSymbols; code++) {
+            trieInsertSymbolBytes(symbols[code], (u16) code);
          }
+         trieReadyFinal = true;
+         trieReadyTrain = false;
       } else {
-         for (u32 i = 0; i < nSymbols; ++i) {
+         // symbols[FSST_CODE_BASE..FSST_CODE_BASE+nSymbols) are real symbols during training
+         for (u32 i=0; i<nSymbols; i++) {
             u16 code = (u16)(FSST_CODE_BASE + i);
-            const Symbol& s = symbols[code];
-            if (!bucketableSymbol(s)) continue;
-            hist[bucketKey(s)]++;
+            trieInsertSymbolBytes(symbols[code], code);
          }
-      }
-
-      // prefix sum -> bucket ranges
-      u32 total = 0;
-      for (u32 k = 0; k < 65536; ++k) {
-         bucket2[k].first  = total;
-         bucket2[k].count  = hist[k];
-         bucket2[k].count8 = round_up_8(hist[k]);
-         total += bucket2[k].count8;
-      }
-
-      candBytes.resize(total);
-      candMasks.resize(total);
-      candCode.resize(total);
-      candLen.resize(total);
-
-      candLenIdx32.resize(total);
-      candTieCode64.resize(total);
-      candValid64.resize(total);
-
-      // current write position per bucket
-      vector<u32> next(65536, 0);
-
-      auto addBucketSymbol = [&](const Symbol& s, u16 code) {
-         u16 key = bucketKey(s);
-         u32 p = bucket2[key].first + next[key]++;
-
-         fillCandidateArrays(s, code,
-                             candBytes[p], candMasks[p],
-                             candCode[p], candLen[p],
-                             candLenIdx32[p], candTieCode64[p], candValid64[p]);
-      };
-
-      if (finalLayout) {
-         for (u32 code = 0; code < nSymbols; ++code) {
-            const Symbol& s = symbols[code];
-            if (!bucketableSymbol(s)) continue;
-            addBucketSymbol(s, (u16)code);
-         }
-         bucketReadyFinal = true;
-         bucketReadyTrain = false;
-      } else {
-         for (u32 i = 0; i < nSymbols; ++i) {
-            u16 code = (u16)(FSST_CODE_BASE + i);
-            const Symbol& s = symbols[code];
-            if (!bucketableSymbol(s)) continue;
-            addBucketSymbol(s, code);
-         }
-         bucketReadyTrain = true;
-         bucketReadyFinal = false;
-      }
-
-      // fill padded dummy entries so AVX-512 can safely read in chunks of 8
-      for (u32 k = 0; k < 65536; ++k) {
-         u32 begin = bucket2[k].first + bucket2[k].count;
-         u32 end   = bucket2[k].first + bucket2[k].count8;
-         for (u32 p = begin; p < end; ++p) {
-            candBytes[p]     = 0;
-            candMasks[p]     = 0;
-            candCode[p]      = 0;
-            candLen[p]       = 1;
-            candLenIdx32[p]  = 0;
-            candTieCode64[p] = 0;
-            candValid64[p]   = 0;  // marks dummy
-         }
+         trieReadyTrain = true;
+         trieReadyFinal = false;
       }
    }
 
    // Build DP parse for a byte sequence (n bytes).
    // If finalLayout==false: escape detection is (code < FSST_CODE_BASE).
    // If finalLayout==true : escape detection is (code == 511)  (as produced by finalize()).
-   void buildDP_avx512(const u8* data, size_t n, bool finalLayout);
-
-   void buildDP(const u8* data, size_t n, bool finalLayout) {
-      if (fsst_hasAVX512()) {
-         buildDP_avx512(data, n, finalLayout);
-      } else {
-         buildDP_scalar(data, n, finalLayout);
-      }
-   }
-
-   
-
-   void buildDP_scalar(const u8* data, size_t n, bool finalLayout) {
-      // ensure buckets are built for the current layout
+   inline void buildDP(const u8* data, size_t n, bool finalLayout) {
+      // ensure trie is built for the current layout
       if (finalLayout) {
-         if (!bucketReadyFinal) rebuildBuckets(true);
+         if (!trieReadyFinal) rebuildTrie(true);
       } else {
-         if (!bucketReadyTrain) rebuildBuckets(false);
+         if (!trieReadyTrain) rebuildTrie(false);
       }
 
-      dpCost.resize(n + 8);
-      for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
-      dpChoice.resize(n);
-      u64 w = 0;
-      for (int i=(int)n-1; i>=0; --i) {
-         w = (w << 8) | data[i];
-         u8 b = (u8)w;
-         u16 key = (u16)w;
-         u16 litCode = byteCodes[b] & FSST_CODE_MASK;
-         u32 litEmit = finalLayout ? (litCode == 511 ? 2u : 1u)
-                                 : (1u + (litCode < FSST_CODE_BASE));
-         u32 bestCost = litEmit + dpCost[i + 1];
-         u16 bestCode = litCode;
-         u8  chosenLen = 1;
-         Bucket bk = bucket2[key];
-         for (u32 p = bk.first; p < bk.first + bk.count; ++p) {
-            u64 diff = (w ^ candBytes[p]) & candMasks[p];
-            u8 len = candLen[p];
-            u32 match = (diff == 0);
-            u32 cost = 1u + dpCost[i + candLen[p]];
-            u32 take = match & (cost < bestCost | ((cost == bestCost) & (len >= chosenLen)));
-            bestCost = take ? cost : bestCost;
-            bestCode = take ? candCode[p] : bestCode;
-            chosenLen = take ? len : chosenLen;
-         }
+      dpCost.assign(n + 1, 0);
+      dpChoice.assign(n, 0);
+      /*deque<int> mn, mx; // indices of min and max dp values from last 8 positions
+      mn.push_back(n); mx.push_back(n);*/
 
-         dpCost[i] = bestCost;
-         dpChoice[i] = bestCode;
+      for (int i=(int)n-1; i>=0; --i) {
+
+         // drop indices out of window (keep only <= i+8, and also > i)
+         /*if (mn.front() > i + 8) mn.pop_front();
+         if (mx.front() > i + 8) mx.pop_front();*/
+
+         /*if(dpCost[mx.front()] - dpCost[mn.front()] <= THRESHOLD) { // dp is almost constant 
+               int code = findLongestSymbol(data + i, data + min(i + 8, (int)n));
+               dpCost[i] = 1 + (code < FSST_CODE_BASE) + dpCost[i + symbols[code].length()];
+               dpChoice[i] = code;
+         }
+         else{*/
+            u8 b = data[i];
+            // literal candidate (either real 1-byte symbol if present, or escape)
+            u16 litCode = byteCodes[b] & FSST_CODE_MASK; // works pre- and post-finalize
+            u32 litCost;
+            if (finalLayout) {
+               // after finalize: 511 means escape(255 + byte), otherwise 1 byte code
+               litCost = (litCode == 511 ? 2u : 1u) + dpCost[i+1];
+            } else {
+               // during training: codes < 256 are pseudo escaped bytes
+               litCost = (1u + (litCode < FSST_CODE_BASE)) + dpCost[i+1];
+            }
+   
+            u32 bestCost = litCost;
+            u16 bestCode = litCode;
+   
+            // walk trie for real symbols (1..8 bytes)
+            int node = 0;
+            int limit = (int) min<size_t>(Symbol::maxLength, n - (size_t)i);
+            for (int off=0; off<limit; ++off) {
+               u8 bb = data[i + off];
+               node = trie[node].child[bb];
+               if (node == -1) break;
+               int code = trie[node].symbolCode;
+               if (code != -1) {
+                  u32 L = (u32)(off + 1);
+                  u32 cost = 1u + dpCost[i + (int)L]; // real symbol always emits 1 byte
+                  if (cost <= bestCost) {
+                     bestCost = cost;
+                     bestCode = (u16) code;
+                  }
+               }
+   
+            }
+            dpCost[i] = bestCost;
+            dpChoice[i] = bestCode;
+         /*}
+         // update min max deques
+         while(!mn.empty() && dpCost[i] <= dpCost[mn.back()]) mn.pop_back();
+         while(!mx.empty() && dpCost[i] >= dpCost[mx.back()]) mx.pop_back();
+         mn.push_back(i); mx.push_back(i);*/
 
       }
    }
@@ -472,9 +362,9 @@ struct SymbolTable {
       } 
       nSymbols = 0; // no need to clean symbols[] as no symbols are used
       // reset flags and clear vectors for BtrFSST
-      bucketReadyTrain = false;
-      bucketReadyFinal = false;
-      clearBuckets();
+      trieReadyTrain = false;
+      trieReadyFinal = false;
+      trie.clear();
       dpCost.clear();
       dpChoice.clear();
 
@@ -492,18 +382,16 @@ struct SymbolTable {
       u32 len = s.length();
       s.set_code_len(FSST_CODE_BASE + nSymbols, len);
       if (len == 1) {
-         if( (byteCodes[s.first()] & FSST_CODE_MASK) >= FSST_CODE_BASE) return false;
+         if( (byteCodes[s.first()] & ((1 << 12) - 1)) >= FSST_CODE_BASE) return false;
          byteCodes[s.first()] = FSST_CODE_BASE + nSymbols + (1<<FSST_LEN_BITS); // len=1 (<<FSST_LEN_BITS)
       } else if (len == 2) {
-         if( (shortCodes[s.first2()] & FSST_CODE_MASK) >= FSST_CODE_BASE) return false;
+         if( (shortCodes[s.first2()] & ((1 << 12) - 1)) >= FSST_CODE_BASE) return false;
          shortCodes[s.first2()] = FSST_CODE_BASE + nSymbols + (2<<FSST_LEN_BITS); // len=2 (<<FSST_LEN_BITS)
       } else if (!hashInsert(s)) {
          return false;
       }
       symbols[FSST_CODE_BASE + nSymbols++] = s;
       lenHisto[len-1]++;
-      bucketReadyTrain = false;
-      bucketReadyFinal = false;
       return true;
    }
    /// Find longest expansion, return code (= position in symbol table)
@@ -597,9 +485,9 @@ struct SymbolTable {
           if (hashTab[i].icl < FSST_ICL_FREE)
              hashTab[i] = symbols[newCode[(u8) hashTab[i].code()]];
 
-       // if someone later uses DP encoding, ensure buckets can be rebuilt in final layout
-       bucketReadyTrain = false;
-       bucketReadyFinal = false;
+       // if someone later uses DP encoding, ensure trie can be rebuilt in final layout
+       trieReadyTrain = false;
+       trieReadyFinal = false;
 
    }
 };
@@ -711,7 +599,8 @@ struct SIMDjob {
    u64 out:19,pos:9,end:18,cur:18; // cur/end is input offsets (2^18=256KB), out is output offset (2^19=512KB)  
 };
 
-
+extern bool 
+fsst_hasAVX512(); // runtime check for avx512 capability
 
 extern size_t 
 fsst_compressAVX512(
