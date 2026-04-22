@@ -278,13 +278,66 @@ struct Cand {
    bool operator<(Cand const& o) const { return gain < o.gain; } // max-heap
 };
 
+static TrieMetrics collectTrieMetrics(const SymbolTable& st) {
+   TrieMetrics metrics;
+   metrics.nodeCount = st.trie.size();
+   if (st.trie.empty()) return metrics;
+
+   vector<pair<int, size_t>> stack;
+   stack.emplace_back(0, 0);
+
+   while (!stack.empty()) {
+      auto [nodeIdx, level] = stack.back();
+      stack.pop_back();
+
+      if (metrics.levels.size() <= level) {
+         TrieLevelMetrics levelMetrics;
+         levelMetrics.level = level;
+         metrics.levels.push_back(levelMetrics);
+      }
+
+      TrieLevelMetrics& levelMetrics = metrics.levels[level];
+      levelMetrics.nodes++;
+
+      size_t childCount = st.trieForEachChild(nodeIdx, [&](int childIdx) {
+         stack.emplace_back(childIdx, level + 1);
+
+         size_t distance = (childIdx >= nodeIdx) ? (size_t) (childIdx - nodeIdx) : (size_t) (nodeIdx - childIdx);
+         if (levelMetrics.childDistanceSamples == 0) {
+            levelMetrics.minChildDistance = distance;
+            levelMetrics.maxChildDistance = distance;
+         } else {
+            levelMetrics.minChildDistance = min(levelMetrics.minChildDistance, distance);
+            levelMetrics.maxChildDistance = max(levelMetrics.maxChildDistance, distance);
+         }
+         levelMetrics.childDistanceSamples++;
+         levelMetrics.childDistanceSum += distance;
+      });
+
+      levelMetrics.childEdges += childCount;
+      if (childCount > 0) {
+         if (levelMetrics.internalNodes == 0) {
+            levelMetrics.minChildren = childCount;
+            levelMetrics.maxChildren = childCount;
+         } else {
+            levelMetrics.minChildren = min(levelMetrics.minChildren, childCount);
+            levelMetrics.maxChildren = max(levelMetrics.maxChildren, childCount);
+         }
+         levelMetrics.internalNodes++;
+      }
+   }
+
+   return metrics;
+}
+
 
 
 SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
                                        vector<const u8*> line,
                                        const size_t len[],
                                        bool zeroTerminated,
-                                       const fsst_options_t& opt)
+                                       const fsst_options_t& opt,
+                                       TrieMetrics* lastTrainingTrieMetrics = nullptr)
 {
    SymbolTable *st = new SymbolTable(), *bestTable = new SymbolTable();
    int bestGain = (int) -FSST_SAMPLEMAXSZ;
@@ -483,7 +536,7 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
       u16 termCode = st->nSymbols ? FSST_CODE_BASE : st->terminator;
       //u16 termCode = st->byteCodes[st->terminator] & FSST_CODE_MASK;
       if (termCode < C) c1[termCode] = 65535;
-      assert(st->symbols[termCode].val.str[0] == st->terminator && st->symbols[termCode].length() == 1);
+      //assert(st->symbols[termCode].val.str[0] == st->terminator && st->symbols[termCode].length() == 1);
       priority_queue<Cand> heap;
 
       auto pushSingle = [&](u16 a) {
@@ -539,14 +592,27 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
             if(prevSym[a].val.str[0] != st->terminator &&
                prevSym[b].val.str[0] != st->terminator &&
                prevSym[c].val.str[0] != st->terminator)
-            pushTriple(a,b,c);
+               pushTriple(a,b,c);
          }
       }
-
+         
       // build next table
       st->clear();
       unordered_set<u64> seen;
       unordered_map<u16, vector<u16>> pref_map, suf_map; 
+      auto insertSymbol = [&](Symbol s) -> bool {
+         if (s.length() > 2 && (opt.flags & FSST_OPT_DP_TRAIN) && (opt.flags & FSST_OPT_DP_ENCODE)) {
+            u64 num = s.load_num();
+            if (seen.find(num) != seen.end()) return false;
+            seen.insert(num);
+            s.set_code_len(FSST_CODE_BASE + st->nSymbols, s.length());
+            st->symbols[FSST_CODE_BASE + st->nSymbols++] = s;
+            st->lenHisto[s.length()-1]++;
+            return true;
+         }
+         return st->add(s);
+      };
+
       //bool first = true;
       while (st->nSymbols < 255 && !heap.empty()) {
          Cand cd = heap.top();
@@ -577,25 +643,12 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
             Symbol ab = concat(prevSym[cd.a], prevSym[cd.b]);
             s = concat(ab, prevSym[cd.c]);
          }
-         len = s.length();
          /*if(first) {
             assert(s.val.str[0] == st->terminator && len == 1);
             first = false;
          }*/
          // insert (hash collisions possible; skip if so)
-         if( (opt.flags & FSST_OPT_DP_TRAIN) && (opt.flags & FSST_OPT_DP_ENCODE) ) { // don't use fsst hashing
-            u64 num = s.load_num();
-            if(seen.find(num) != seen.end()) continue;
-            seen.insert(num);
-            // add symbol to st
-            if (len == 1) {
-               st->byteCodes[s.first()] = FSST_CODE_BASE + st->nSymbols + (1<<FSST_LEN_BITS); // len=1 (<<FSST_LEN_BITS)
-            }
-            s.set_code_len(FSST_CODE_BASE + st->nSymbols, len);
-            st->symbols[FSST_CODE_BASE + st->nSymbols++] = s;
-            st->lenHisto[len-1]++;
-         }
-         else if (!st->add(s)) continue;
+         if(!insertSymbol(s)) continue;
          
          // pruning: reduce counts for parts used
          if ((opt.flags & FSST_OPT_PRUNE) && cd.b != 0xFFFF) {
@@ -643,6 +696,10 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          }
       }
 
+
+      // if DP training is enabled, rebuild trie for training layout (so next compressCountDP is fast)
+      st->trieReadyTrain = false;
+      st->trieReadyFinal = false;
    };
 
    
@@ -668,21 +725,22 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          *bestTable = *st; bestGain = (int)gain;
       }
 
+      if(sampleFrac == 128) {
+         if (lastTrainingTrieMetrics) {
+            *lastTrainingTrieMetrics = collectTrieMetrics(*st);
+         }
+      }
+
       if (sampleFrac >= 128) break;
 
       // Build next table
       makeTableEx(st, counters);
    }
 
+   delete st;
    counters.restore1(bestCounters);
    makeTableEx(bestTable, counters);
-   /*for(int i = 0; i < 65536; i++) {
-      if(!st->bucket2[i].empty()) {
-         cout << i << ": " << st->bucket2[i].count << endl;
-      }
-   }*/
    bestTable->finalize(zeroTerminated);
-   delete st;
    return bestTable;
 }
 
@@ -1021,7 +1079,6 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
                                          const fsst_options_t* optp)
 {
    fsst_options_t opt = optp ? *optp : fsst_options_t{0};
-   unsigned train_flags = opt.flags & (FSST_OPT_DP_TRAIN | FSST_OPT_TRIPLES | FSST_OPT_PRUNE);
 
    u8* sampleBuf = new u8[FSST_SAMPLEMAXSZ];
    const size_t *sampleLen = lenIn;
@@ -1029,7 +1086,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
 
    Encoder *encoder = new Encoder();
 
-   if (train_flags == 0) {
+   if (opt.flags == 0) {
       encoder->symbolTable = shared_ptr<SymbolTable>(buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated));
    } else {
       encoder->symbolTable = shared_ptr<SymbolTable>(Btrfsst_buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated, opt));
@@ -1038,6 +1095,25 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
    if (sampleLen != lenIn) delete[] sampleLen;
    delete[] sampleBuf;
    return (fsst_encoder_t*) encoder;
+}
+
+TrieMetrics measureLastTrainingTrie(size_t n,
+                                    const size_t lenIn[],
+                                    const u8 *strIn[],
+                                    bool zeroTerminated,
+                                    const fsst_options_t& opt) {
+   u8* sampleBuf = new u8[FSST_SAMPLEMAXSZ];
+   const size_t *sampleLen = lenIn;
+   vector<const u8*> sample = makeSample(sampleBuf, strIn, &sampleLen, n ? n : 1);
+
+   Counters counters;
+   TrieMetrics metrics;
+   SymbolTable* symbolTable = Btrfsst_buildSymbolTable(counters, sample, sampleLen, zeroTerminated, opt, &metrics);
+
+   delete symbolTable;
+   if (sampleLen != lenIn) delete[] sampleLen;
+   delete[] sampleBuf;
+   return metrics;
 }
 
 

@@ -4,6 +4,7 @@ build/
 build-avx512/
 build-noavx512/
 build-oldavxdp/
+build-trie/
 build12/
 build12-asan/
 data/raw/

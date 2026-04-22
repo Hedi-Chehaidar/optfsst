@@ -74,6 +74,9 @@ constexpr inline uint64_t swap64_if_be(uint64_t v) noexcept {
 #endif
 }
 
+#define likely(expr) __builtin_expect((expr), 1)
+#define unlikely(expr) __builtin_expect((expr), 0)
+
 inline uint64_t fsst_unaligned_load(u8 const* V) {
     uint64_t Ret;
     memcpy(&Ret, V, sizeof(uint64_t)); // compiler will generate efficient code (unaligned load, where possible)
@@ -187,10 +190,10 @@ struct SymbolTable {
 
    // BtrFSST: Trie + DP parsing
    struct TrieNode {
-      int symbolCode;      // code of a symbol ending here, -1 if none
-      int child[256];      // child indices, -1 if absent
+      short symbolCode;      // code of a symbol ending here, -1 if none
+      short child[256];      // child indices, -1 if absent
       TrieNode() : symbolCode(-1) {
-         for (int i=0;i<256;i++) child[i] = -1;
+         for (int i=0; i<256; ++i) child[i] = -1;
       }
    };
 
@@ -209,13 +212,29 @@ struct SymbolTable {
       trie.emplace_back(); // root
    }
 
+   inline int trieGetChild(int nodeIdx, u8 byte) const {
+      return trie[nodeIdx].child[byte];
+   }
+
+   template <typename Fn>
+   inline size_t trieForEachChild(int nodeIdx, Fn&& fn) const {
+      size_t count = 0;
+      for (int byte = 0; byte < 256; ++byte) {
+         int child = trie[nodeIdx].child[byte];
+         if (child == -1) continue;
+         fn(child);
+         count++;
+      }
+      return count;
+   }
+
    inline void trieInsertSymbolBytes(const Symbol& s, u16 code) {
       int node = 0;
       u32 L = s.length();
       // Ignore "pseudo" symbols in the trie (we only store real symbols)
       for (u32 i=0; i<L; i++) {
          u8 b = (u8) s.val.str[i];
-         int& nxt = trie[node].child[b];
+         short& nxt = trie[node].child[b];
          if (nxt == -1) {
             nxt = (int) trie.size();
             trie.emplace_back();
@@ -225,6 +244,56 @@ struct SymbolTable {
       trie[node].symbolCode = (int) code;
    }
 
+   inline void compactTrieBreadthFirst() {
+      if (trie.size() <= 2) return;
+
+      vector<int> order;
+      order.reserve(trie.size());
+
+      queue<int> work;
+      work.push(0);
+
+      while (!work.empty()) {
+         int node = work.front();
+         work.pop();
+         order.push_back(node);
+
+         // Visit children in byte order so hot shallow fanout stays tightly packed.
+         trieForEachChild(node, [&](int child) {
+            work.push(child);
+         });
+      }
+
+      if (order.size() != trie.size()) return;
+
+      vector<int> remap(trie.size(), -1);
+      for (size_t newIdx = 0; newIdx < order.size(); ++newIdx) {
+         remap[order[newIdx]] = (int) newIdx;
+      }
+
+      vector<TrieNode> oldTrie = trie;
+
+      trie.clear();
+      trie.reserve(order.size());
+
+      for (size_t newIdx = 0; newIdx < order.size(); ++newIdx) {
+         int oldIdx = order[newIdx];
+         TrieNode newNode;
+         newNode.symbolCode = oldTrie[oldIdx].symbolCode;
+         trie.emplace_back(newNode);
+      }
+
+      //update children
+      for (size_t newIdx = 0; newIdx < order.size(); ++newIdx) {
+         int oldIdx = order[newIdx];
+         const TrieNode& oldNode = oldTrie[oldIdx];
+         for (int byte = 0; byte < 256; ++byte) {
+            int child = oldNode.child[byte];
+            if (child != -1) trie[newIdx].child[byte] = remap[child];
+         }
+      }
+   }
+
    inline void rebuildTrie(bool finalLayout) {
       trieReset();
       if (finalLayout) {
@@ -232,6 +301,7 @@ struct SymbolTable {
          for (u32 code=0; code<nSymbols; code++) {
             trieInsertSymbolBytes(symbols[code], (u16) code);
          }
+         compactTrieBreadthFirst();
          trieReadyFinal = true;
          trieReadyTrain = false;
       } else {
@@ -240,6 +310,7 @@ struct SymbolTable {
             u16 code = (u16)(FSST_CODE_BASE + i);
             trieInsertSymbolBytes(symbols[code], code);
          }
+         compactTrieBreadthFirst();
          trieReadyTrain = true;
          trieReadyFinal = false;
       }
@@ -248,7 +319,7 @@ struct SymbolTable {
    // Build DP parse for a byte sequence (n bytes).
    // If finalLayout==false: escape detection is (code < FSST_CODE_BASE).
    // If finalLayout==true : escape detection is (code == 511)  (as produced by finalize()).
-   inline void buildDP(const u8* data, size_t n, bool finalLayout) {
+   inline void buildDP(const u8* data, int n, bool finalLayout) {
       // ensure trie is built for the current layout
       if (finalLayout) {
          if (!trieReadyFinal) rebuildTrie(true);
@@ -256,63 +327,78 @@ struct SymbolTable {
          if (!trieReadyTrain) rebuildTrie(false);
       }
 
-      dpCost.assign(n + 1, 0);
-      dpChoice.assign(n, 0);
-      /*deque<int> mn, mx; // indices of min and max dp values from last 8 positions
-      mn.push_back(n); mx.push_back(n);*/
-
-      for (int i=(int)n-1; i>=0; --i) {
-
-         // drop indices out of window (keep only <= i+8, and also > i)
-         /*if (mn.front() > i + 8) mn.pop_front();
-         if (mx.front() > i + 8) mx.pop_front();*/
-
-         /*if(dpCost[mx.front()] - dpCost[mn.front()] <= THRESHOLD) { // dp is almost constant 
-               int code = findLongestSymbol(data + i, data + min(i + 8, (int)n));
-               dpCost[i] = 1 + (code < FSST_CODE_BASE) + dpCost[i + symbols[code].length()];
-               dpChoice[i] = code;
-         }
-         else{*/
-            u8 b = data[i];
-            // literal candidate (either real 1-byte symbol if present, or escape)
-            u16 litCode = byteCodes[b] & FSST_CODE_MASK; // works pre- and post-finalize
-            u32 litCost;
-            if (finalLayout) {
-               // after finalize: 511 means escape(255 + byte), otherwise 1 byte code
-               litCost = (litCode == 511 ? 2u : 1u) + dpCost[i+1];
-            } else {
-               // during training: codes < 256 are pseudo escaped bytes
-               litCost = (1u + (litCode < FSST_CODE_BASE)) + dpCost[i+1];
+      dpCost.resize(n + 8);
+      for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
+      dpChoice.resize(n);
+      for (int i= n-1; i>=0; --i) {
+         u8 b = data[i];
+         u16 litCode = byteCodes[b] & FSST_CODE_MASK;
+         u32 litEmit = finalLayout ? (litCode == 511 ? 2u : 1u)
+                                 : (1u + (litCode < FSST_CODE_BASE));
+         u32 bestCost = litEmit + dpCost[i + 1];
+         u16 bestCode = litCode;
+   
+         // walk trie for real symbols (1..8 bytes)
+         int node = 0;
+         int limit = min((int) Symbol::maxLength, n - i);
+         auto considerTrieMatch = [&](int off) {
+            //__builtin_prefetch(&dpCost[i + off + 1], 0, 1);
+            int code = trie[node].symbolCode;
+            u32 cost = 1u + dpCost[i + off + 1]; // real symbol always emits 1 byte
+            /*bestCost = (code != -1 && cost <= bestCost) ? cost : bestCost;
+            bestCode = (code != -1 && cost <= bestCost) ? code : bestCode;*/
+            if(unlikely(code != -1 && cost <= bestCost)) {
+               bestCost = cost;
+               bestCode = code;
             }
-   
-            u32 bestCost = litCost;
-            u16 bestCode = litCode;
-   
-            // walk trie for real symbols (1..8 bytes)
-            int node = 0;
-            int limit = (int) min<size_t>(Symbol::maxLength, n - (size_t)i);
-            for (int off=0; off<limit; ++off) {
-               u8 bb = data[i + off];
-               node = trie[node].child[bb];
-               if (node == -1) break;
-               int code = trie[node].symbolCode;
-               if (code != -1) {
-                  u32 L = (u32)(off + 1);
-                  u32 cost = 1u + dpCost[i + (int)L]; // real symbol always emits 1 byte
-                  if (cost <= bestCost) {
-                     bestCost = cost;
-                     bestCode = (u16) code;
+         };
+         node = trieGetChild(node, data[i]);
+         
+         if (likely(limit > 1 && node != -1)) {
+               node = trieGetChild(node, data[i + 1]);
+               
+               if (unlikely(node == -1)) goto builddp_done;
+               considerTrieMatch(1);
+               if (likely(limit > 2)) {
+                     node = trieGetChild(node, data[i + 2]);
+                     
+                     if ((node == -1)) goto builddp_done;
+                     considerTrieMatch(2);
+                     if (likely(limit > 3)) {
+                        node = trieGetChild(node, data[i + 3]);
+                        
+                        if ((node == -1)) goto builddp_done;
+                        considerTrieMatch(3);
+                        if (likely(limit > 4)) {
+                           node = trieGetChild(node, data[i + 4]);
+                           
+                           if ((node == -1)) goto builddp_done;
+                           considerTrieMatch(4);
+                           if (likely(limit > 5)) {
+                              node = trieGetChild(node, data[i + 5]);
+                              
+                              if ((node == -1)) goto builddp_done;
+                              considerTrieMatch(5);
+                              if (likely(limit > 6)) {
+                                 node = trieGetChild(node, data[i + 6]);
+                                 
+                                 if ((node == -1)) goto builddp_done;
+                                 considerTrieMatch(6);
+                                 if (likely(limit > 7)) {
+                                    node = trieGetChild(node, data[i + 7]);
+                                    
+                                    if ((node == -1)) goto builddp_done;
+                                    considerTrieMatch(7);
+                                 }
+                              }
+                           }
+                        }
+                     }
                   }
-               }
-   
-            }
-            dpCost[i] = bestCost;
-            dpChoice[i] = bestCode;
-         /*}
-         // update min max deques
-         while(!mn.empty() && dpCost[i] <= dpCost[mn.back()]) mn.pop_back();
-         while(!mx.empty() && dpCost[i] >= dpCost[mx.back()]) mx.pop_back();
-         mn.push_back(i); mx.push_back(i);*/
+         }
+builddp_done:
+         dpCost[i] = bestCost;
+         dpChoice[i] = bestCode;
 
       }
    }
@@ -594,6 +680,24 @@ struct Encoder {
    };
 };
 
+struct TrieLevelMetrics {
+   size_t level = 0;
+   size_t nodes = 0;
+   size_t internalNodes = 0;
+   size_t childEdges = 0;
+   size_t minChildren = 0;
+   size_t maxChildren = 0;
+   size_t childDistanceSamples = 0;
+   size_t childDistanceSum = 0;
+   size_t minChildDistance = 0;
+   size_t maxChildDistance = 0;
+};
+
+struct TrieMetrics {
+   size_t nodeCount = 0;
+   vector<TrieLevelMetrics> levels;
+};
+
 // job control integer representable in one 64bits SIMD lane: cur/end=input, out=output, pos=which string (2^9=512 per call)
 struct SIMDjob {
    u64 out:19,pos:9,end:18,cur:18; // cur/end is input offsets (2^18=256KB), out is output offset (2^19=512KB)  
@@ -615,4 +719,5 @@ fsst_compressAVX512(
 // C++ fsst-compress function with some more control of how the compression happens (algorithm flavor, simd unroll degree)
 size_t compressImpl(Encoder *encoder, size_t n, const size_t lenIn[], const u8 *strIn[], size_t size, u8 * output, size_t *lenOut, u8 *strOut[], bool noSuffixOpt, bool avoidBranch, int simd);
 size_t compressAuto(Encoder *encoder, size_t n, const size_t lenIn[], const u8 *strIn[], size_t size, u8 * output, size_t *lenOut, u8 *strOut[], int simd);
+TrieMetrics measureLastTrainingTrie(size_t n, const size_t lenIn[], const u8 *strIn[], bool zeroTerminated, const fsst_options_t& opt);
 }  // namespace libfsst

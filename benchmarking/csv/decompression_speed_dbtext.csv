@@ -1,116 +1,116 @@
 configuration,Time,file
-FSST (w/o AVX),2241.52,../fsst-paper/dbtext/hamlet
-BtrFSST (w/o AVX),2649.36,../fsst-paper/dbtext/hamlet
-FSST (w/o AVX),1871.32,../fsst-paper/dbtext/wikipedia
-BtrFSST (w/o AVX),1367.26,../fsst-paper/dbtext/wikipedia
-FSST (w/o AVX),3157.19,../fsst-paper/dbtext/ps_comment
-BtrFSST (w/o AVX),3438.43,../fsst-paper/dbtext/ps_comment
-FSST (w/o AVX),3965.66,../fsst-paper/dbtext/c_name
-BtrFSST (w/o AVX),4805.11,../fsst-paper/dbtext/c_name
-FSST (w/o AVX),1633.16,../fsst-paper/dbtext/chinese
-BtrFSST (w/o AVX),1800.29,../fsst-paper/dbtext/chinese
-FSST (w/o AVX),2465.02,../fsst-paper/dbtext/uuid
-BtrFSST (w/o AVX),2497.39,../fsst-paper/dbtext/uuid
-FSST (w/o AVX),1918.42,../fsst-paper/dbtext/hex
-BtrFSST (w/o AVX),1757.54,../fsst-paper/dbtext/hex
-FSST (w/o AVX),2005.83,../fsst-paper/dbtext/japanese
-BtrFSST (w/o AVX),1589.42,../fsst-paper/dbtext/japanese
-FSST (w/o AVX),2209.67,../fsst-paper/dbtext/street
-BtrFSST (w/o AVX),2623.43,../fsst-paper/dbtext/street
-FSST (w/o AVX),1456.43,../fsst-paper/dbtext/yago
-BtrFSST (w/o AVX),1340.67,../fsst-paper/dbtext/yago
-FSST (w/o AVX),1660.38,../fsst-paper/dbtext/lastname
-BtrFSST (w/o AVX),1925.02,../fsst-paper/dbtext/lastname
-FSST (w/o AVX),1630.16,../fsst-paper/dbtext/movies
-BtrFSST (w/o AVX),1294.87,../fsst-paper/dbtext/movies
-FSST (w/o AVX),2814.16,../fsst-paper/dbtext/location
-BtrFSST (w/o AVX),2799.55,../fsst-paper/dbtext/location
-FSST (w/o AVX),2107.13,../fsst-paper/dbtext/email
-BtrFSST (w/o AVX),2206.78,../fsst-paper/dbtext/email
-FSST (w/o AVX),2011.09,../fsst-paper/dbtext/firstname
-BtrFSST (w/o AVX),1875.73,../fsst-paper/dbtext/firstname
-FSST (w/o AVX),2025.04,../fsst-paper/dbtext/credentials
-BtrFSST (w/o AVX),2334.26,../fsst-paper/dbtext/credentials
-FSST (w/o AVX),1567.29,../fsst-paper/dbtext/wiki
-BtrFSST (w/o AVX),1418.8,../fsst-paper/dbtext/wiki
-FSST (w/o AVX),2114.63,../fsst-paper/dbtext/city
-BtrFSST (w/o AVX),1647.97,../fsst-paper/dbtext/city
-FSST (w/o AVX),2052.5,../fsst-paper/dbtext/urls2
-BtrFSST (w/o AVX),1922.41,../fsst-paper/dbtext/urls2
-FSST (w/o AVX),3046.06,../fsst-paper/dbtext/l_comment
-BtrFSST (w/o AVX),3072.09,../fsst-paper/dbtext/l_comment
-FSST (w/o AVX),1906.42,../fsst-paper/dbtext/faust
-BtrFSST (w/o AVX),1456.43,../fsst-paper/dbtext/faust
-FSST (w/o AVX),2748.8,../fsst-paper/dbtext/genome
-BtrFSST (w/o AVX),3314.63,../fsst-paper/dbtext/genome
-FSST (w/o AVX),2458.49,../fsst-paper/dbtext/urls
-BtrFSST (w/o AVX),2551.69,../fsst-paper/dbtext/urls
-FSST (w/ AVX),2195.23,../fsst-paper/dbtext/hamlet
-BtrFSST (w/ AVX),2702.77,../fsst-paper/dbtext/hamlet
-FSST (w/ AVX),1791.45,../fsst-paper/dbtext/wikipedia
-BtrFSST (w/ AVX),1366.62,../fsst-paper/dbtext/wikipedia
-FSST (w/ AVX),3328.06,../fsst-paper/dbtext/ps_comment
-BtrFSST (w/ AVX),3699.32,../fsst-paper/dbtext/ps_comment
-FSST (w/ AVX),4336.83,../fsst-paper/dbtext/c_name
-BtrFSST (w/ AVX),5094.44,../fsst-paper/dbtext/c_name
-FSST (w/ AVX),1717.78,../fsst-paper/dbtext/chinese
-BtrFSST (w/ AVX),1656.77,../fsst-paper/dbtext/chinese
-FSST (w/ AVX),2328.8,../fsst-paper/dbtext/uuid
-BtrFSST (w/ AVX),2430.74,../fsst-paper/dbtext/uuid
-FSST (w/ AVX),1851.08,../fsst-paper/dbtext/hex
-BtrFSST (w/ AVX),1924.14,../fsst-paper/dbtext/hex
-FSST (w/ AVX),2027.11,../fsst-paper/dbtext/japanese
-BtrFSST (w/ AVX),2194.08,../fsst-paper/dbtext/japanese
-FSST (w/ AVX),2276.35,../fsst-paper/dbtext/street
-BtrFSST (w/ AVX),2509.6,../fsst-paper/dbtext/street
-FSST (w/ AVX),1586.73,../fsst-paper/dbtext/yago
-BtrFSST (w/ AVX),1262.13,../fsst-paper/dbtext/yago
-FSST (w/ AVX),1899.71,../fsst-paper/dbtext/lastname
-BtrFSST (w/ AVX),1922.76,../fsst-paper/dbtext/lastname
-FSST (w/ AVX),1585.55,../fsst-paper/dbtext/movies
-BtrFSST (w/ AVX),1242.68,../fsst-paper/dbtext/movies
-FSST (w/ AVX),3027.48,../fsst-paper/dbtext/location
-BtrFSST (w/ AVX),2808.46,../fsst-paper/dbtext/location
-FSST (w/ AVX),1943.21,../fsst-paper/dbtext/email
-BtrFSST (w/ AVX),1951.03,../fsst-paper/dbtext/email
-FSST (w/ AVX),1834.3,../fsst-paper/dbtext/firstname
-BtrFSST (w/ AVX),1834.49,../fsst-paper/dbtext/firstname
-FSST (w/ AVX),2299.6,../fsst-paper/dbtext/credentials
-BtrFSST (w/ AVX),2405.29,../fsst-paper/dbtext/credentials
-FSST (w/ AVX),1633.75,../fsst-paper/dbtext/wiki
-BtrFSST (w/ AVX),1380.23,../fsst-paper/dbtext/wiki
-FSST (w/ AVX),1971.15,../fsst-paper/dbtext/city
-BtrFSST (w/ AVX),2136.81,../fsst-paper/dbtext/city
-FSST (w/ AVX),1935.32,../fsst-paper/dbtext/urls2
-BtrFSST (w/ AVX),1824.51,../fsst-paper/dbtext/urls2
-FSST (w/ AVX),2588.13,../fsst-paper/dbtext/l_comment
-BtrFSST (w/ AVX),3043.25,../fsst-paper/dbtext/l_comment
-FSST (w/ AVX),1865.98,../fsst-paper/dbtext/faust
-BtrFSST (w/ AVX),1646.19,../fsst-paper/dbtext/faust
-FSST (w/ AVX),2657.17,../fsst-paper/dbtext/genome
-BtrFSST (w/ AVX),3249.52,../fsst-paper/dbtext/genome
-FSST (w/ AVX),2434.21,../fsst-paper/dbtext/urls
-BtrFSST (w/ AVX),2544.88,../fsst-paper/dbtext/urls
-BtrFSST (Trie),2391.18,../fsst-paper/dbtext/hamlet
-BtrFSST (Trie),1398.14,../fsst-paper/dbtext/wikipedia
-BtrFSST (Trie),3581.69,../fsst-paper/dbtext/ps_comment
-BtrFSST (Trie),4932.28,../fsst-paper/dbtext/c_name
-BtrFSST (Trie),1433.41,../fsst-paper/dbtext/chinese
-BtrFSST (Trie),2525.87,../fsst-paper/dbtext/uuid
-BtrFSST (Trie),1982.4,../fsst-paper/dbtext/hex
-BtrFSST (Trie),2195.65,../fsst-paper/dbtext/japanese
-BtrFSST (Trie),2375.91,../fsst-paper/dbtext/street
-BtrFSST (Trie),1309.12,../fsst-paper/dbtext/yago
-BtrFSST (Trie),1909.58,../fsst-paper/dbtext/lastname
-BtrFSST (Trie),1268.52,../fsst-paper/dbtext/movies
-BtrFSST (Trie),3007.75,../fsst-paper/dbtext/location
-BtrFSST (Trie),2105.6,../fsst-paper/dbtext/email
-BtrFSST (Trie),1936.12,../fsst-paper/dbtext/firstname
-BtrFSST (Trie),2237.37,../fsst-paper/dbtext/credentials
-BtrFSST (Trie),1361.78,../fsst-paper/dbtext/wiki
-BtrFSST (Trie),1943.45,../fsst-paper/dbtext/city
-BtrFSST (Trie),1971.52,../fsst-paper/dbtext/urls2
-BtrFSST (Trie),2879.08,../fsst-paper/dbtext/l_comment
-BtrFSST (Trie),1584,../fsst-paper/dbtext/faust
-BtrFSST (Trie),3451.99,../fsst-paper/dbtext/genome
-BtrFSST (Trie),2708.1,../fsst-paper/dbtext/urls
+FSST (w/o AVX),2467.18,../fsst-paper/dbtext/hamlet
+BtrFSST (w/o AVX),2066.42,../fsst-paper/dbtext/hamlet
+FSST (w/o AVX),1749.92,../fsst-paper/dbtext/wikipedia
+BtrFSST (w/o AVX),1362.9,../fsst-paper/dbtext/wikipedia
+FSST (w/o AVX),3170.18,../fsst-paper/dbtext/ps_comment
+BtrFSST (w/o AVX),3633.41,../fsst-paper/dbtext/ps_comment
+FSST (w/o AVX),4008.59,../fsst-paper/dbtext/c_name
+BtrFSST (w/o AVX),5113.69,../fsst-paper/dbtext/c_name
+FSST (w/o AVX),1549.9,../fsst-paper/dbtext/chinese
+BtrFSST (w/o AVX),1563.39,../fsst-paper/dbtext/chinese
+FSST (w/o AVX),2514.35,../fsst-paper/dbtext/uuid
+BtrFSST (w/o AVX),2394.41,../fsst-paper/dbtext/uuid
+FSST (w/o AVX),1998.32,../fsst-paper/dbtext/hex
+BtrFSST (w/o AVX),1675.21,../fsst-paper/dbtext/hex
+FSST (w/o AVX),2004.33,../fsst-paper/dbtext/japanese
+BtrFSST (w/o AVX),2005.56,../fsst-paper/dbtext/japanese
+FSST (w/o AVX),2235.76,../fsst-paper/dbtext/street
+BtrFSST (w/o AVX),2377.78,../fsst-paper/dbtext/street
+FSST (w/o AVX),1537.54,../fsst-paper/dbtext/yago
+BtrFSST (w/o AVX),1221.11,../fsst-paper/dbtext/yago
+FSST (w/o AVX),1666.2,../fsst-paper/dbtext/lastname
+BtrFSST (w/o AVX),1787.45,../fsst-paper/dbtext/lastname
+FSST (w/o AVX),1585.58,../fsst-paper/dbtext/movies
+BtrFSST (w/o AVX),1293.4,../fsst-paper/dbtext/movies
+FSST (w/o AVX),2518.47,../fsst-paper/dbtext/location
+BtrFSST (w/o AVX),2742.38,../fsst-paper/dbtext/location
+FSST (w/o AVX),2201.34,../fsst-paper/dbtext/email
+BtrFSST (w/o AVX),2096.8,../fsst-paper/dbtext/email
+FSST (w/o AVX),1930,../fsst-paper/dbtext/firstname
+BtrFSST (w/o AVX),1692.62,../fsst-paper/dbtext/firstname
+FSST (w/o AVX),2017.19,../fsst-paper/dbtext/credentials
+BtrFSST (w/o AVX),2268.24,../fsst-paper/dbtext/credentials
+FSST (w/o AVX),1615.51,../fsst-paper/dbtext/wiki
+BtrFSST (w/o AVX),1443.88,../fsst-paper/dbtext/wiki
+FSST (w/o AVX),1683.53,../fsst-paper/dbtext/city
+BtrFSST (w/o AVX),2201.24,../fsst-paper/dbtext/city
+FSST (w/o AVX),1986.25,../fsst-paper/dbtext/urls2
+BtrFSST (w/o AVX),1848,../fsst-paper/dbtext/urls2
+FSST (w/o AVX),2697.85,../fsst-paper/dbtext/l_comment
+BtrFSST (w/o AVX),3021.84,../fsst-paper/dbtext/l_comment
+FSST (w/o AVX),1673.52,../fsst-paper/dbtext/faust
+BtrFSST (w/o AVX),1553.56,../fsst-paper/dbtext/faust
+FSST (w/o AVX),2701.82,../fsst-paper/dbtext/genome
+BtrFSST (w/o AVX),3660.32,../fsst-paper/dbtext/genome
+FSST (w/o AVX),2503.87,../fsst-paper/dbtext/urls
+BtrFSST (w/o AVX),2626.91,../fsst-paper/dbtext/urls
+FSST (w/ AVX),2259.01,../fsst-paper/dbtext/hamlet
+BtrFSST (w/ AVX),2376.32,../fsst-paper/dbtext/hamlet
+FSST (w/ AVX),1866.99,../fsst-paper/dbtext/wikipedia
+BtrFSST (w/ AVX),1390.29,../fsst-paper/dbtext/wikipedia
+FSST (w/ AVX),3091.83,../fsst-paper/dbtext/ps_comment
+BtrFSST (w/ AVX),3376.84,../fsst-paper/dbtext/ps_comment
+FSST (w/ AVX),3984.71,../fsst-paper/dbtext/c_name
+BtrFSST (w/ AVX),5121.73,../fsst-paper/dbtext/c_name
+FSST (w/ AVX),1551.8,../fsst-paper/dbtext/chinese
+BtrFSST (w/ AVX),1539.61,../fsst-paper/dbtext/chinese
+FSST (w/ AVX),2473.27,../fsst-paper/dbtext/uuid
+BtrFSST (w/ AVX),2280.24,../fsst-paper/dbtext/uuid
+FSST (w/ AVX),1808.7,../fsst-paper/dbtext/hex
+BtrFSST (w/ AVX),1828.27,../fsst-paper/dbtext/hex
+FSST (w/ AVX),2254.47,../fsst-paper/dbtext/japanese
+BtrFSST (w/ AVX),1953.29,../fsst-paper/dbtext/japanese
+FSST (w/ AVX),2181.59,../fsst-paper/dbtext/street
+BtrFSST (w/ AVX),2245.5,../fsst-paper/dbtext/street
+FSST (w/ AVX),1520.75,../fsst-paper/dbtext/yago
+BtrFSST (w/ AVX),1404.55,../fsst-paper/dbtext/yago
+FSST (w/ AVX),1852.23,../fsst-paper/dbtext/lastname
+BtrFSST (w/ AVX),1908.04,../fsst-paper/dbtext/lastname
+FSST (w/ AVX),1610.06,../fsst-paper/dbtext/movies
+BtrFSST (w/ AVX),1297.15,../fsst-paper/dbtext/movies
+FSST (w/ AVX),2895.64,../fsst-paper/dbtext/location
+BtrFSST (w/ AVX),2825.64,../fsst-paper/dbtext/location
+FSST (w/ AVX),1894.64,../fsst-paper/dbtext/email
+BtrFSST (w/ AVX),2076.39,../fsst-paper/dbtext/email
+FSST (w/ AVX),1928.31,../fsst-paper/dbtext/firstname
+BtrFSST (w/ AVX),1911.68,../fsst-paper/dbtext/firstname
+FSST (w/ AVX),2324.4,../fsst-paper/dbtext/credentials
+BtrFSST (w/ AVX),1918.56,../fsst-paper/dbtext/credentials
+FSST (w/ AVX),1554.62,../fsst-paper/dbtext/wiki
+BtrFSST (w/ AVX),1434.72,../fsst-paper/dbtext/wiki
+FSST (w/ AVX),1928.74,../fsst-paper/dbtext/city
+BtrFSST (w/ AVX),1974.53,../fsst-paper/dbtext/city
+FSST (w/ AVX),1981.17,../fsst-paper/dbtext/urls2
+BtrFSST (w/ AVX),2036.65,../fsst-paper/dbtext/urls2
+FSST (w/ AVX),2561.29,../fsst-paper/dbtext/l_comment
+BtrFSST (w/ AVX),2944.08,../fsst-paper/dbtext/l_comment
+FSST (w/ AVX),1859.62,../fsst-paper/dbtext/faust
+BtrFSST (w/ AVX),1610.68,../fsst-paper/dbtext/faust
+FSST (w/ AVX),2805.15,../fsst-paper/dbtext/genome
+BtrFSST (w/ AVX),3098.12,../fsst-paper/dbtext/genome
+FSST (w/ AVX),2545.54,../fsst-paper/dbtext/urls
+BtrFSST (w/ AVX),2557,../fsst-paper/dbtext/urls
+BtrFSST (Trie),2396.15,../fsst-paper/dbtext/hamlet
+BtrFSST (Trie),1375.53,../fsst-paper/dbtext/wikipedia
+BtrFSST (Trie),3475.73,../fsst-paper/dbtext/ps_comment
+BtrFSST (Trie),5437.66,../fsst-paper/dbtext/c_name
+BtrFSST (Trie),1525.75,../fsst-paper/dbtext/chinese
+BtrFSST (Trie),2300.09,../fsst-paper/dbtext/uuid
+BtrFSST (Trie),1865.56,../fsst-paper/dbtext/hex
+BtrFSST (Trie),2065.55,../fsst-paper/dbtext/japanese
+BtrFSST (Trie),2401.39,../fsst-paper/dbtext/street
+BtrFSST (Trie),1348.71,../fsst-paper/dbtext/yago
+BtrFSST (Trie),1956.63,../fsst-paper/dbtext/lastname
+BtrFSST (Trie),1221.89,../fsst-paper/dbtext/movies
+BtrFSST (Trie),2861.78,../fsst-paper/dbtext/location
+BtrFSST (Trie),2085.15,../fsst-paper/dbtext/email
+BtrFSST (Trie),1834.5,../fsst-paper/dbtext/firstname
+BtrFSST (Trie),2182.9,../fsst-paper/dbtext/credentials
+BtrFSST (Trie),1443.92,../fsst-paper/dbtext/wiki
+BtrFSST (Trie),1923.42,../fsst-paper/dbtext/city
+BtrFSST (Trie),1838.29,../fsst-paper/dbtext/urls2
+BtrFSST (Trie),2882.41,../fsst-paper/dbtext/l_comment
+BtrFSST (Trie),1323.03,../fsst-paper/dbtext/faust
+BtrFSST (Trie),3304.6,../fsst-paper/dbtext/genome
+BtrFSST (Trie),2645.55,../fsst-paper/dbtext/urls
