@@ -19,3 +19,5 @@ benchmarking/tmp_out_*
 benchmarking/tmp_out2_*
 benchmarking/tmp12_out_*
 benchmarking/tmp12_out2_*
+benchmarking/runner
+benchmarking/runner12

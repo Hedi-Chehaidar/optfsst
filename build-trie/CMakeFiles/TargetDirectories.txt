@@ -1,6 +1,0 @@
-/home/hedi/btrfsst/build-trie/CMakeFiles/fsst.dir
-/home/hedi/btrfsst/build-trie/CMakeFiles/binary.dir
-/home/hedi/btrfsst/build-trie/CMakeFiles/fsst12.dir
-/home/hedi/btrfsst/build-trie/CMakeFiles/binary12.dir
-/home/hedi/btrfsst/build-trie/CMakeFiles/edit_cache.dir
-/home/hedi/btrfsst/build-trie/CMakeFiles/rebuild_cache.dir

@@ -67,7 +67,7 @@ static inline u32 pack2(u16 a, u16 b) {
 }
 
 struct Count3 {
-   unordered_map<u64, u16> m;
+   std::unordered_map<u64, u16> m;
 
    static inline u64 key(u16 a, u16 b, u16 c) {
       return ((u64)a << 24) | ((u64)b << 12) | (u64)c;
@@ -367,7 +367,7 @@ SymbolMap *Btrfsst_buildSymbolMap(Counters& counters,
       for (u32 i = 0; i < C; ++i) prevSym[i] = st->symbols[i];
 
       vector<int> c1(C, 0);
-      unordered_map<u32, int> c2;
+      std::unordered_map<u32, int> c2;
 
       for (u32 pos1 = 0; pos1 < C; pos1++) {
          u32 cnt1 = counters.count1GetNext(pos1);

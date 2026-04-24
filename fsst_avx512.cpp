@@ -242,7 +242,7 @@ void SymbolTable::buildDP_avx512( const u8* data, size_t n, bool finalLayout) {
          // current low lanes are [dp[i+1], ..., dp[i+8]]
          // write dp[i] into lane 15, then permute so next low lanes are
          // [dp[i], dp[i+1], ..., dp[i+7]]
-         dpWin = _mm512_mask_set1_epi32(dpWin, 0x8000, (int)bestCost);
+         dpWin = _mm512_mask_set1_epi32(dpWin, 0x8000, (int)dpCost[i]);
          dpWin = _mm512_permutexvar_epi32(SHIFT_DP, dpWin);
       }
 
