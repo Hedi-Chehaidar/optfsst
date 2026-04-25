@@ -53,7 +53,7 @@ typedef uint64_t u64;
 #define FSST_ENDIAN_MARKER ((u64) 1)
 #define FSST_VERSION_20190218 20190218
 #define FSST_VERSION ((u64) FSST_VERSION_20190218)
-
+#define FSST_SAMPLELINE ((size_t) 512)
 // "symbols" are character sequences (up to 8 bytes)
 // A symbol is compressed into a "code" of, in principle, one byte. But, we added an exception mechanism:
 // byte 255 followed by byte X represents the single-byte symbol X. Its code is 256+X.
@@ -197,9 +197,11 @@ struct SymbolTable {
       }
    };
 
+   short trieFirstByte[256]; // first-byte dispatch into suffix-only trie nodes
+
    // DP working area
-   vector<u32> dpCost;      // dpCost[i] = minimal encoded length of suffix starting at i
-   vector<u16> dpChoice;    // dpChoice[i] = chosen code at i (pre-finalize: 0..511; final: 0..255 plus 511=escape)
+   u32 dpCost[FSST_SAMPLELINE + 8];      // dpCost[i] = minimal encoded length of suffix starting at i
+   u16 dpChoice[FSST_SAMPLELINE];    // dpChoice[i] = chosen code at i (pre-finalize: 0..511; final: 0..255 plus 511=escape)
 
    // Trie storage (only built when needed)
    vector<TrieNode> trie;
@@ -209,7 +211,7 @@ struct SymbolTable {
    inline void trieReset() {
       trie.clear();
       trie.reserve((8 * 255 + 1));
-      trie.emplace_back(); // root
+      for (int i=0; i<256; ++i) trieFirstByte[i] = -1;
    }
 
    inline int trieGetChild(int nodeIdx, u8 byte) const {
@@ -229,14 +231,22 @@ struct SymbolTable {
    }
 
    inline void trieInsertSymbolBytes(const Symbol& s, u16 code) {
-      int node = 0;
       u32 L = s.length();
-      // Ignore "pseudo" symbols in the trie (we only store real symbols)
-      for (u32 i=0; i<L; i++) {
+      if (L <= 1) return; // 1-byte symbols are already handled through byteCodes
+
+      u8 first = (u8) s.val.str[0];
+      short& root = trieFirstByte[first];
+      if (root == -1) {
+         root = (short) trie.size();
+         trie.emplace_back();
+      }
+
+      int node = root;
+      for (u32 i=1; i<L; i++) {
          u8 b = (u8) s.val.str[i];
          short& nxt = trie[node].child[b];
          if (nxt == -1) {
-            nxt = (int) trie.size();
+            nxt = (short) trie.size();
             trie.emplace_back();
          }
          node = trie[node].child[b];
@@ -244,14 +254,17 @@ struct SymbolTable {
       trie[node].symbolCode = (int) code;
    }
 
-   inline void compactTrieBreadthFirst() {
-      if (trie.size() <= 2) return;
+   /*inline void compactTrieBreadthFirst() {
+      if (trie.size() <= 1) return;
 
       vector<int> order;
       order.reserve(trie.size());
 
       queue<int> work;
-      work.push(0);
+      for (int byte = 0; byte < 256; ++byte) {
+         int node = trieFirstByte[byte];
+         if (node != -1) work.push(node);
+      }
 
       while (!work.empty()) {
          int node = work.front();
@@ -292,7 +305,12 @@ struct SymbolTable {
             if (child != -1) trie[newIdx].child[byte] = remap[child];
          }
       }
-   }
+
+      for (int byte = 0; byte < 256; ++byte) {
+         int node = trieFirstByte[byte];
+         trieFirstByte[byte] = (node == -1) ? -1 : (short) remap[node];
+      }
+   }*/
 
    inline void rebuildTrie(bool finalLayout) {
       trieReset();
@@ -301,7 +319,6 @@ struct SymbolTable {
          for (u32 code=0; code<nSymbols; code++) {
             trieInsertSymbolBytes(symbols[code], (u16) code);
          }
-         compactTrieBreadthFirst();
          trieReadyFinal = true;
          trieReadyTrain = false;
       } else {
@@ -310,7 +327,6 @@ struct SymbolTable {
             u16 code = (u16)(FSST_CODE_BASE + i);
             trieInsertSymbolBytes(symbols[code], code);
          }
-         compactTrieBreadthFirst();
          trieReadyTrain = true;
          trieReadyFinal = false;
       }
@@ -327,9 +343,8 @@ struct SymbolTable {
          if (!trieReadyTrain) rebuildTrie(false);
       }
 
-      dpCost.resize(n + 8);
       for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
-      dpChoice.resize(n);
+
       for (int i= n-1; i>=0; --i) {
          u8 b = data[i];
          u16 litCode = byteCodes[b] & FSST_CODE_MASK;
@@ -338,23 +353,19 @@ struct SymbolTable {
          u32 bestCost = litEmit + dpCost[i + 1];
          u16 bestCode = litCode;
    
-         // walk trie for real symbols (1..8 bytes)
-         int node = 0;
+         // walk trie for real symbols (2..8 bytes), bucketed by first byte
+         int node = trieFirstByte[b];
          int limit = min((int) Symbol::maxLength, n - i);
          auto considerTrieMatch = [&](int off) {
-            //__builtin_prefetch(&dpCost[i + off + 1], 0, 1);
             int code = trie[node].symbolCode;
             u32 cost = 1u + dpCost[i + off + 1]; // real symbol always emits 1 byte
-            /*bestCost = (code != -1 && cost <= bestCost) ? cost : bestCost;
-            bestCode = (code != -1 && cost <= bestCost) ? code : bestCode;*/
             if(unlikely(code != -1 && cost <= bestCost)) {
                bestCost = cost;
                bestCode = code;
             }
          };
-         node = trieGetChild(node, data[i]);
          
-         if (likely(limit > 1 && node != -1)) {
+         if (likely(limit > 1 &&  node != -1)) {
                node = trieGetChild(node, data[i + 1]);
                
                if (unlikely(node == -1)) goto builddp_done;
@@ -451,8 +462,6 @@ builddp_done:
       trieReadyTrain = false;
       trieReadyFinal = false;
       trie.clear();
-      dpCost.clear();
-      dpChoice.clear();
 
    }
    bool hashInsert(Symbol s) {

@@ -1018,7 +1018,7 @@ static inline size_t compressBulkDP(SymbolTable &symbolTable,
 }
 
 
-#define FSST_SAMPLELINE ((size_t) 512)
+
 
 // quickly select a uniformly random set of lines such that we have between [FSST_SAMPLETARGET,FSST_SAMPLEMAXSZ) string bytes
 vector<const u8*> makeSample(u8* sampleBuf, const u8* strIn[], const size_t **lenRef, size_t nlines) {
