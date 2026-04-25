@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/hedi/btrfsst/build12-trie/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

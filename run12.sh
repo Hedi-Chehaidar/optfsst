@@ -4,6 +4,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$ROOT_DIR/build12"
+BUILD_DIR_TRIE="$ROOT_DIR/build12-trie"
 BENCH_DIR="$ROOT_DIR/benchmarking"
 
 step() {
@@ -23,6 +24,13 @@ cmake -S "$ROOT_DIR" -B "$BUILD_DIR"
 
 step "Building fsst12 executable"
 cmake --build "$BUILD_DIR" -j --target binary12
+
+step "Configuring 12-bit trie build"
+rm -rf "$BUILD_DIR_TRIE"
+cmake -S "$ROOT_DIR" -B "$BUILD_DIR_TRIE" -DFSST12_USE_TRIE_IMPL=ON
+
+step "Building fsst12 trie executable"
+cmake --build "$BUILD_DIR_TRIE" -j --target binary12
 
 step "Building 12-bit benchmark runner"
 g++ "$BENCH_DIR/runner12.cpp" -o "$BENCH_DIR/runner12"

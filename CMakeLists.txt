@@ -4,6 +4,7 @@ project(btrfsst)
 
 option(FSST_DISABLE_AVX512 "Disable AVX-512 code paths and runtime dispatch" OFF)
 option(FSST_USE_TRIE_IMPL "Build FSST with the trie-based library implementation" OFF)
+option(FSST12_USE_TRIE_IMPL "Build FSST12 with the trie-based library implementation" OFF)
 
 find_package(Threads REQUIRED)
 
@@ -55,8 +56,12 @@ if(FSST_DISABLE_AVX512)
     target_compile_options(binary PRIVATE -mno-avx512f -mno-avx512bw -mno-avx512vl -mno-avx512dq -mno-avx512cd)
 endif()
 
+set(FSST12_LIBRARY_SOURCE libfsst12.cpp)
+if(FSST12_USE_TRIE_IMPL)
+    set(FSST12_LIBRARY_SOURCE libfsst12_trie.cpp)
+endif()
 
-add_library(fsst12 libfsst12.cpp)
+add_library(fsst12 ${FSST12_LIBRARY_SOURCE})
 add_executable(binary12 fsst.cpp)
 target_link_libraries (binary12 LINK_PUBLIC fsst12)
 target_link_libraries (binary12 LINK_PUBLIC Threads::Threads)

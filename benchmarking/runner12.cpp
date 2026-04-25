@@ -15,6 +15,11 @@ struct Config {
     std::string args;
 };
 
+struct BinaryConfig {
+    std::string label;
+    std::string path;
+};
+
 static std::string trim(std::string s) {
     auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
@@ -102,13 +107,15 @@ static double parse_timing_output(const std::string& cmd, int exit_code, const s
 }
 
 int main() {
-    std::string binary;
-    if (fs::exists("../build12/fsst12")) {
-        binary = "../build12/fsst12";
-    } else if (fs::exists("../build12/binary12")) {
-        binary = "../build12/binary12";
-    } else {
-        throw std::runtime_error("could not find 12-bit executable in ../build12 (expected fsst12 or binary12)");
+    const std::vector<BinaryConfig> binaries = {
+        {"FSST12", "../build12/fsst12"},
+        {"Trie12", "../build12-trie/fsst12"},
+    };
+
+    for (const auto& binary : binaries) {
+        if (!fs::exists(binary.path)) {
+            throw std::runtime_error("could not find 12-bit executable: " + binary.path);
+        }
     }
 
     std::vector<std::string> files;
@@ -131,51 +138,54 @@ int main() {
     std::ofstream out2("./csv/decompression_speed_dbtext12.csv");
     out2 << "configuration,Time,file\n";
 
-    for (const auto& file : files) {
-        int pos = 0;
-        for (const auto& cfg : configs) {
-            double comp_time = 0.0;
+    for (const auto& binary : binaries) {
+        for (const auto& file : files) {
+            int pos = 0;
+            for (const auto& cfg : configs) {
+                double comp_time = 0.0;
+                const std::string config_name = cfg.name + " (" + binary.label + ")";
 
-            std::ostringstream cmd;
-            cmd << binary;
-            if (!cfg.args.empty()) cmd << " " << cfg.args;
-            cmd << " " << file;
-            cmd << " ./tmp12_out_" << pos;
+                std::ostringstream cmd;
+                cmd << binary.path;
+                if (!cfg.args.empty()) cmd << " " << cfg.args;
+                cmd << " " << file;
+                cmd << " ./tmp12_out_" << pos;
 
-            for (int i = 0; i < 5; i++) {
-                int exit_code = 0;
-                std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
-                comp_time += parse_timing_output(cmd.str(), exit_code, stdout_text);
+                for (int i = 0; i < 5; i++) {
+                    int exit_code = 0;
+                    std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
+                    comp_time += parse_timing_output(cmd.str(), exit_code, stdout_text);
+                }
+                comp_time /= 5.0;
+
+                double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
+                out1 << config_name << "," << comp_speed << "," << file << "\n";
+
+                std::uintmax_t compressed_size = get_checked_file_size("./tmp12_out_" + std::to_string(pos));
+                avg_cfs[config_name] += 1.0 * get_checked_file_size(file) / compressed_size;
+
+                double decomp_time = 0.0;
+                std::ostringstream cmd2;
+                cmd2 << binary.path << " -d ./tmp12_out_" << pos << " ./tmp12_out2_" << pos;
+
+                for (int i = 0; i < 5; i++) {
+                    int exit_code = 0;
+                    std::string stdout_text = run_and_capture_stdout(cmd2.str(), exit_code);
+                    decomp_time += parse_timing_output(cmd2.str(), exit_code, stdout_text);
+                }
+                decomp_time /= 5.0;
+
+                double decomp_speed = fs::file_size(file) / 1000000.0 / decomp_time;
+                out2 << config_name << "," << decomp_speed << "," << file << "\n";
+
+                if (!files_equal(file, "./tmp12_out2_" + std::to_string(pos))) {
+                    std::cerr << "Mismatch after decompression for file " << file
+                              << ", config " << config_name << "\n";
+                    throw std::runtime_error("decompression correctness failed");
+                }
+
+                pos++;
             }
-            comp_time /= 5.0;
-
-            double comp_speed = fs::file_size(file) / 1000000.0 / comp_time;
-            out1 << cfg.name << "," << comp_speed << "," << file << "\n";
-
-            std::uintmax_t compressed_size = get_checked_file_size("./tmp12_out_" + std::to_string(pos));
-            avg_cfs[cfg.name] += 1.0 * get_checked_file_size(file) / compressed_size;
-
-            double decomp_time = 0.0;
-            std::ostringstream cmd2;
-            cmd2 << binary << " -d ./tmp12_out_" << pos << " ./tmp12_out2_" << pos;
-
-            for (int i = 0; i < 5; i++) {
-                int exit_code = 0;
-                std::string stdout_text = run_and_capture_stdout(cmd2.str(), exit_code);
-                decomp_time += parse_timing_output(cmd2.str(), exit_code, stdout_text);
-            }
-            decomp_time /= 5.0;
-
-            double decomp_speed = fs::file_size(file) / 1000000.0 / decomp_time;
-            out2 << cfg.name << "," << decomp_speed << "," << file << "\n";
-
-            if (!files_equal(file, "./tmp12_out2_" + std::to_string(pos))) {
-                std::cerr << "Mismatch after decompression for file " << file
-                          << ", config " << cfg.name << "\n";
-                throw std::runtime_error("decompression correctness failed");
-            }
-
-            pos++;
         }
     }
 

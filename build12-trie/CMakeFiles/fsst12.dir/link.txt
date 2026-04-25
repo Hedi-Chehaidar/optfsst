@@ -1,0 +1,2 @@
+/usr/bin/ar qc libfsst12.a CMakeFiles/fsst12.dir/libfsst12_trie.cpp.o
+/usr/bin/ranlib libfsst12.a

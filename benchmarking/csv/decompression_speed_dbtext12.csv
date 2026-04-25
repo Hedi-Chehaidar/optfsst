@@ -1,47 +1,93 @@
 configuration,Time,file
-FSST12,2482.02,../fsst-paper/dbtext/street
-BtrFSST12,5212.49,../fsst-paper/dbtext/street
-FSST12,4911.63,../fsst-paper/dbtext/location
-BtrFSST12,5596.19,../fsst-paper/dbtext/location
-FSST12,3741.21,../fsst-paper/dbtext/chinese
-BtrFSST12,4909.37,../fsst-paper/dbtext/chinese
-FSST12,3595.3,../fsst-paper/dbtext/firstname
-BtrFSST12,3985.64,../fsst-paper/dbtext/firstname
-FSST12,4483.91,../fsst-paper/dbtext/urls2
-BtrFSST12,5156.17,../fsst-paper/dbtext/urls2
-FSST12,3801.24,../fsst-paper/dbtext/wiki
-BtrFSST12,4470.72,../fsst-paper/dbtext/wiki
-FSST12,2382.43,../fsst-paper/dbtext/city
-BtrFSST12,4705.55,../fsst-paper/dbtext/city
-FSST12,4351.69,../fsst-paper/dbtext/email
-BtrFSST12,4975,../fsst-paper/dbtext/email
-FSST12,5832.67,../fsst-paper/dbtext/urls
-BtrFSST12,6412.1,../fsst-paper/dbtext/urls
-FSST12,4378.42,../fsst-paper/dbtext/uuid
-BtrFSST12,5089.89,../fsst-paper/dbtext/uuid
-FSST12,5573.69,../fsst-paper/dbtext/genome
-BtrFSST12,6180.58,../fsst-paper/dbtext/genome
-FSST12,2475.66,../fsst-paper/dbtext/japanese
-BtrFSST12,5032.31,../fsst-paper/dbtext/japanese
-FSST12,6759.65,../fsst-paper/dbtext/ps_comment
-BtrFSST12,7643.35,../fsst-paper/dbtext/ps_comment
-FSST12,6101.62,../fsst-paper/dbtext/l_comment
-BtrFSST12,7520.9,../fsst-paper/dbtext/l_comment
-FSST12,4235.66,../fsst-paper/dbtext/wikipedia
-BtrFSST12,4714.22,../fsst-paper/dbtext/wikipedia
-FSST12,4028.71,../fsst-paper/dbtext/faust
-BtrFSST12,4337.66,../fsst-paper/dbtext/faust
-FSST12,3238.01,../fsst-paper/dbtext/hex
-BtrFSST12,3885.49,../fsst-paper/dbtext/hex
-FSST12,3934.67,../fsst-paper/dbtext/lastname
-BtrFSST12,4379.34,../fsst-paper/dbtext/lastname
-FSST12,5102.97,../fsst-paper/dbtext/hamlet
-BtrFSST12,5756.33,../fsst-paper/dbtext/hamlet
-FSST12,6514.72,../fsst-paper/dbtext/c_name
-BtrFSST12,7362.59,../fsst-paper/dbtext/c_name
-FSST12,3633.86,../fsst-paper/dbtext/movies
-BtrFSST12,3927.92,../fsst-paper/dbtext/movies
-FSST12,3656.81,../fsst-paper/dbtext/yago
-BtrFSST12,4146.41,../fsst-paper/dbtext/yago
-FSST12,2435.35,../fsst-paper/dbtext/credentials
-BtrFSST12,5164.41,../fsst-paper/dbtext/credentials
+FSST12 (FSST12),4601.26,../fsst-paper/dbtext/hamlet
+BtrFSST12 (FSST12),6446.73,../fsst-paper/dbtext/hamlet
+FSST12 (FSST12),4045.3,../fsst-paper/dbtext/wikipedia
+BtrFSST12 (FSST12),4725,../fsst-paper/dbtext/wikipedia
+FSST12 (FSST12),6399.91,../fsst-paper/dbtext/ps_comment
+BtrFSST12 (FSST12),8250.02,../fsst-paper/dbtext/ps_comment
+FSST12 (FSST12),6984.43,../fsst-paper/dbtext/c_name
+BtrFSST12 (FSST12),7884.46,../fsst-paper/dbtext/c_name
+FSST12 (FSST12),3666.19,../fsst-paper/dbtext/chinese
+BtrFSST12 (FSST12),4767.84,../fsst-paper/dbtext/chinese
+FSST12 (FSST12),4446.1,../fsst-paper/dbtext/uuid
+BtrFSST12 (FSST12),4953.03,../fsst-paper/dbtext/uuid
+FSST12 (FSST12),3092.71,../fsst-paper/dbtext/hex
+BtrFSST12 (FSST12),3240.54,../fsst-paper/dbtext/hex
+FSST12 (FSST12),2893.55,../fsst-paper/dbtext/japanese
+BtrFSST12 (FSST12),5887.48,../fsst-paper/dbtext/japanese
+FSST12 (FSST12),2575.5,../fsst-paper/dbtext/street
+BtrFSST12 (FSST12),5520.99,../fsst-paper/dbtext/street
+FSST12 (FSST12),3695.51,../fsst-paper/dbtext/yago
+BtrFSST12 (FSST12),3639.94,../fsst-paper/dbtext/yago
+FSST12 (FSST12),3686.95,../fsst-paper/dbtext/lastname
+BtrFSST12 (FSST12),4311.45,../fsst-paper/dbtext/lastname
+FSST12 (FSST12),3414.52,../fsst-paper/dbtext/movies
+BtrFSST12 (FSST12),3817.2,../fsst-paper/dbtext/movies
+FSST12 (FSST12),5178.24,../fsst-paper/dbtext/location
+BtrFSST12 (FSST12),5482.5,../fsst-paper/dbtext/location
+FSST12 (FSST12),3891.07,../fsst-paper/dbtext/email
+BtrFSST12 (FSST12),4876.2,../fsst-paper/dbtext/email
+FSST12 (FSST12),3767.88,../fsst-paper/dbtext/firstname
+BtrFSST12 (FSST12),4085.59,../fsst-paper/dbtext/firstname
+FSST12 (FSST12),2570.99,../fsst-paper/dbtext/credentials
+BtrFSST12 (FSST12),5806.73,../fsst-paper/dbtext/credentials
+FSST12 (FSST12),3326.02,../fsst-paper/dbtext/wiki
+BtrFSST12 (FSST12),3616.46,../fsst-paper/dbtext/wiki
+FSST12 (FSST12),3200.7,../fsst-paper/dbtext/city
+BtrFSST12 (FSST12),4071.69,../fsst-paper/dbtext/city
+FSST12 (FSST12),4123.32,../fsst-paper/dbtext/urls2
+BtrFSST12 (FSST12),5096.35,../fsst-paper/dbtext/urls2
+FSST12 (FSST12),5984.77,../fsst-paper/dbtext/l_comment
+BtrFSST12 (FSST12),7142.06,../fsst-paper/dbtext/l_comment
+FSST12 (FSST12),4308.05,../fsst-paper/dbtext/faust
+BtrFSST12 (FSST12),5020.45,../fsst-paper/dbtext/faust
+FSST12 (FSST12),5623.41,../fsst-paper/dbtext/genome
+BtrFSST12 (FSST12),6023.96,../fsst-paper/dbtext/genome
+FSST12 (FSST12),5588.14,../fsst-paper/dbtext/urls
+BtrFSST12 (FSST12),6998.82,../fsst-paper/dbtext/urls
+FSST12 (Trie12),5577.51,../fsst-paper/dbtext/hamlet
+BtrFSST12 (Trie12),5438.63,../fsst-paper/dbtext/hamlet
+FSST12 (Trie12),3929.51,../fsst-paper/dbtext/wikipedia
+BtrFSST12 (Trie12),4757.36,../fsst-paper/dbtext/wikipedia
+FSST12 (Trie12),6643.76,../fsst-paper/dbtext/ps_comment
+BtrFSST12 (Trie12),9099.55,../fsst-paper/dbtext/ps_comment
+FSST12 (Trie12),7224.1,../fsst-paper/dbtext/c_name
+BtrFSST12 (Trie12),8508.55,../fsst-paper/dbtext/c_name
+FSST12 (Trie12),3456.79,../fsst-paper/dbtext/chinese
+BtrFSST12 (Trie12),4885.87,../fsst-paper/dbtext/chinese
+FSST12 (Trie12),4463.97,../fsst-paper/dbtext/uuid
+BtrFSST12 (Trie12),4584.94,../fsst-paper/dbtext/uuid
+FSST12 (Trie12),3128.8,../fsst-paper/dbtext/hex
+BtrFSST12 (Trie12),4129.83,../fsst-paper/dbtext/hex
+FSST12 (Trie12),2903.96,../fsst-paper/dbtext/japanese
+BtrFSST12 (Trie12),5816.05,../fsst-paper/dbtext/japanese
+FSST12 (Trie12),2753.87,../fsst-paper/dbtext/street
+BtrFSST12 (Trie12),5476.26,../fsst-paper/dbtext/street
+FSST12 (Trie12),3515.65,../fsst-paper/dbtext/yago
+BtrFSST12 (Trie12),4314.72,../fsst-paper/dbtext/yago
+FSST12 (Trie12),3822.88,../fsst-paper/dbtext/lastname
+BtrFSST12 (Trie12),4285.64,../fsst-paper/dbtext/lastname
+FSST12 (Trie12),3388.12,../fsst-paper/dbtext/movies
+BtrFSST12 (Trie12),3917.92,../fsst-paper/dbtext/movies
+FSST12 (Trie12),4675.62,../fsst-paper/dbtext/location
+BtrFSST12 (Trie12),5235.51,../fsst-paper/dbtext/location
+FSST12 (Trie12),4210.36,../fsst-paper/dbtext/email
+BtrFSST12 (Trie12),4764.74,../fsst-paper/dbtext/email
+FSST12 (Trie12),3207.09,../fsst-paper/dbtext/firstname
+BtrFSST12 (Trie12),4202.09,../fsst-paper/dbtext/firstname
+FSST12 (Trie12),3185.94,../fsst-paper/dbtext/credentials
+BtrFSST12 (Trie12),5262.9,../fsst-paper/dbtext/credentials
+FSST12 (Trie12),3291.79,../fsst-paper/dbtext/wiki
+BtrFSST12 (Trie12),3958.26,../fsst-paper/dbtext/wiki
+FSST12 (Trie12),2901.72,../fsst-paper/dbtext/city
+BtrFSST12 (Trie12),4814.87,../fsst-paper/dbtext/city
+FSST12 (Trie12),4565.59,../fsst-paper/dbtext/urls2
+BtrFSST12 (Trie12),4789.57,../fsst-paper/dbtext/urls2
+FSST12 (Trie12),5779.44,../fsst-paper/dbtext/l_comment
+BtrFSST12 (Trie12),8185.27,../fsst-paper/dbtext/l_comment
+FSST12 (Trie12),3779.34,../fsst-paper/dbtext/faust
+BtrFSST12 (Trie12),4739.64,../fsst-paper/dbtext/faust
+FSST12 (Trie12),5436.91,../fsst-paper/dbtext/genome
+BtrFSST12 (Trie12),6126.24,../fsst-paper/dbtext/genome
+FSST12 (Trie12),5665.2,../fsst-paper/dbtext/urls
+BtrFSST12 (Trie12),7018.41,../fsst-paper/dbtext/urls
