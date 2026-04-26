@@ -54,9 +54,11 @@ typedef uint64_t u64;
 
 // "symbols" are character sequences (up to 8 bytes)
 // A symbol is compressed into a "code" of, 1.5 bytes (12 bits)
-#define FSST_SAMPLELINE ((size_t) 500)
+#define FSST_SAMPLELINE ((size_t) 512)
 #define FSST_CODE_MAX 4096
 #define FSST_CODE_MASK      ((u16) (FSST_CODE_MAX-1)) 
+#define FSST_SAMPLETARGET (1<<17) 
+#define FSST_SAMPLEMAXSZ ((long) 2*FSST_SAMPLETARGET) 
 
 namespace libfsst {
 inline uint64_t fsst_unaligned_load(u8 const* V) {
@@ -164,8 +166,8 @@ struct SymbolMap {
    vector<u8>  candLen;
    bool bucketReady = false;
 
-   u32 dpCost[FSST_SAMPLELINE + 8];
-   u16 dpChoice[FSST_SAMPLELINE];
+   vector<u32> dpCost;//[FSST_SAMPLEMAXSZ + 8];
+   vector<u16> dpChoice;//[FSST_SAMPLEMAXSZ];
 
    SymbolMap() : symbolCount(256), zeroTerminated(false) {
       // stuff done once at startup
@@ -311,10 +313,11 @@ struct SymbolMap {
       bucketReady = true;
    }
 
-   void buildDP_scalar(const u8* data, size_t n) {
+   void buildDP(const u8* data, size_t n) {
       if (!bucketReady) rebuildBuckets();
       assert(n <= FSST_SAMPLELINE);
-
+      dpChoice.resize(n);
+      dpCost.resize(n + 8);
       for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
 
       u64 w = 0;

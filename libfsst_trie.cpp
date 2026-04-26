@@ -90,7 +90,6 @@ SymbolTable *buildSymbolTable(Counters& counters, vector<const u8*> line, const 
 
    // compress sample, and compute (pair-)frequencies
    auto compressCount = [&](SymbolTable *st, Counters &counters) { // returns gain
-      //PROFILE_FUNCTION("compressCount");
       int gain = 0;
 
       for(size_t i=0; i<line.size(); i++) {
@@ -159,7 +158,6 @@ SymbolTable *buildSymbolTable(Counters& counters, vector<const u8*> line, const 
    };
 
    auto makeTable = [&](SymbolTable *st, Counters &counters) {
-      //PROFILE_FUNCTION("makeTable");
       // hashmap of c (needed because we can generate duplicate candidates)
       unordered_set<QSymbol> cands;
 
@@ -376,10 +374,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          const u8* cur = line[i], *start = cur;
          const u8* end = cur + len[i];
 
-         /*if (sampleFrac < 128) {
-            // in earlier rounds (sampleFrac < 128) we skip data in the sample (reduces overall work ~2x)
-            if (rnd128(i) > sampleFrac) continue;
-         }*/
          if (cur < end) {
             u16 code2 = 255, code1 = st->findLongestSymbol(cur, end);
             cur += st->symbols[code1].length();
@@ -439,7 +433,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
 
    // DP-based compressCount
    auto compressCountDP = [&](SymbolTable *st, Counters &counters) -> int {
-      //PROFILE_FUNCTION("compressCountDP");
       int gain = 0;
       count3.clear();
 
@@ -447,9 +440,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          const u8* cur = line[i];
          const size_t n = len[i];
 
-         /*if (sampleFrac < 128) {
-            if (rnd128(i) > sampleFrac) continue;
-         }*/
          if (n == 0) continue;
 
          // build trie for training layout and DP parse
@@ -481,7 +471,7 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
 
                counters.count2Inc(code, next);
                // also count extension by next byte if next consumes >1 (avoid double count for 1-byte)
-               if (!isEscapeCode(next) /*st->symbols[next].length() != 1*/)
+               if (!isEscapeCode(next))
                   counters.count2Inc(code, cur[pos]);
             }
 
@@ -507,7 +497,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
 
    // makeTable with heap + triples + pruning
    auto makeTableEx = [&](SymbolTable *st, Counters &counters) {
-      //PROFILE_FUNCTION("makeTableEx");
       const u32 C = FSST_CODE_BASE + (u32)st->nSymbols;
 
       // snapshot symbols from previous table
@@ -534,28 +523,21 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
 
       // force terminator inclusion (same idea as fsst)
       u16 termCode = st->nSymbols ? FSST_CODE_BASE : st->terminator;
-      //u16 termCode = st->byteCodes[st->terminator] & FSST_CODE_MASK;
       if (termCode < C) c1[termCode] = 65535;
-      //assert(st->symbols[termCode].val.str[0] == st->terminator && st->symbols[termCode].length() == 1);
       priority_queue<Cand> heap;
 
       auto pushSingle = [&](u16 a) {
          int cnt = c1[a];
          if(cnt <= 0) return;
-         /*assert(cnt >= 0);
-         if(!cnt) return;*/
-         //if (cnt < (5*sampleFrac)/128) return; // improves both compression speed (less candidates), but also quality!!
+        
          u8 L = (u8) prevSym[a].length();
          // heuristic: promoting single-byte symbols (*8) helps reduce exception rates and increases [de]compression speed
-         int gain = /*(L == 1 ? 8 : L)*/ L * cnt ;
+         int gain = L * cnt ;
          heap.push(Cand{gain, a, 0xFFFF, 0xFFFF, (u16)cnt, L});
       };
       auto pushPair = [&](u16 a, u16 b) {
          int cnt = c2[a][b];
          if(cnt <= 0) return;
-         /*assert(cnt >= 0);
-         if(!cnt) return;*/
-         //if (cnt < (5*sampleFrac)/128) return; // improves both compression speed (less candidates), but also quality!!
          u32 Lsum = prevSym[a].length() + prevSym[b].length();
          if (Lsum > Symbol::maxLength) Lsum = Symbol::maxLength;
          heap.push(Cand{(int)Lsum * cnt, a, b, 0xFFFF, (u16)cnt, (u8)Lsum});
@@ -563,9 +545,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
       auto pushTriple = [&](u16 a, u16 b, u16 c) {
          u16 cnt = count3.get(a,b,c);
          if(cnt == 0) return;
-         /*assert(cnt >= 0);
-         if(!cnt) return;*/
-         //if (cnt < (5*sampleFrac)/128) return; // improves both compression speed (less candidates), but also quality!!
          u32 Lab = prevSym[a].length() + prevSym[b].length();
          if (Lab >= Symbol::maxLength) return; // shouldn't happen
          u32 Lsum = Lab + prevSym[c].length();
@@ -599,7 +578,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
       // build next table
       st->clear();
       unordered_set<u64> seen;
-      unordered_map<u16, vector<u16>> pref_map, suf_map; 
       auto insertSymbol = [&](Symbol s) -> bool {
          if (s.length() > 2 && (opt.flags & FSST_OPT_DP_TRAIN) && (opt.flags & FSST_OPT_DP_ENCODE)) {
             u64 num = s.load_num();
@@ -613,7 +591,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
          return st->add(s);
       };
 
-      //bool first = true;
       while (st->nSymbols < 255 && !heap.empty()) {
          Cand cd = heap.top();
          heap.pop();
@@ -643,10 +620,6 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
             Symbol ab = concat(prevSym[cd.a], prevSym[cd.b]);
             s = concat(ab, prevSym[cd.c]);
          }
-         /*if(first) {
-            assert(s.val.str[0] == st->terminator && len == 1);
-            first = false;
-         }*/
          // insert (hash collisions possible; skip if so)
          if(!insertSymbol(s)) continue;
          
@@ -657,25 +630,10 @@ SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
             // decrement singles
             if(cd.c == 0xFFFF) {
                c1[cd.a] -= used;
-               /*auto it = suf_map.find(cd.a);
-               if(it != suf_map.end()) {
-                  for(auto c : (*it).second) {
-                     c1[cd.a] += count3.get(c, cd.a, cd.b);
-                  }
-               }*/
                if(cd.a != cd.b) pushSingle(cd.a);
                
                c1[cd.b] -= used;
-               /*it = pref_map.find(cd.b);
-               if(it != pref_map.end()) {
-                  for(auto c : (*it).second) {
-                     c1[cd.b] += count3.get(cd.a, cd.b, c);
-                  }
-               }*/
                pushSingle(cd.b);
-
-               //pref_map[cd.a].push_back(cd.b);
-               //suf_map[cd.b].push_back(cd.a);
             }
             else {
                c1[cd.a] -= used;

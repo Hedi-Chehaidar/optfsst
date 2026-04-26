@@ -7,6 +7,7 @@ build-oldavxdp/
 build-trie/
 build12/
 build12-asan/
+build12-trie/
 data/raw/
 data/refined/
 data/refined_all/
@@ -21,3 +22,8 @@ benchmarking/tmp12_out_*
 benchmarking/tmp12_out2_*
 benchmarking/runner
 benchmarking/runner12
+benchmarking/cf_bench12
+benchmarking/line_bench
+benchmarking/runner
+benchmarking/runner12
+benchmarking/runner_trie_metrics

@@ -54,7 +54,6 @@ typedef uint64_t u64;
 
 // "symbols" are character sequences (up to 8 bytes)
 // A symbol is compressed into a "code" of, 1.5 bytes (12 bits)
-#define FSST_SAMPLELINE ((size_t) 500)
 #define FSST_CODE_MAX 4096
 #define FSST_CODE_MASK      ((u16) (FSST_CODE_MAX-1)) 
 
@@ -65,14 +64,8 @@ inline uint64_t fsst_unaligned_load(u8 const* V) {
     return Ret;
 }
 
-inline u64 symbol_len_mask(u32 len) {
-   assert(len >= 1 && len <= 8);
-   return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
-}
-
-inline u32 round_up_8(u32 x) {
-   return (x + 7u) & ~7u;
-}
+#define likely(expr) __builtin_expect((expr), 1)
+#define unlikely(expr) __builtin_expect((expr), 0)
 
 struct Symbol {
    static const unsigned maxLength = 8;
@@ -159,8 +152,8 @@ struct SymbolMap {
    vector<TrieNode> trie;
    bool trieReady = false;
 
-   u32 dpCost[FSST_SAMPLELINE + 8];
-   u16 dpChoice[FSST_SAMPLELINE];
+   vector<u32> dpCost;
+   vector<u16> dpChoice;
 
    SymbolMap() : symbolCount(256), zeroTerminated(false) {
       // stuff done once at startup
@@ -282,10 +275,11 @@ struct SymbolMap {
       trieReady = true;
    }
 
-   void buildDP_scalar(const u8* data, size_t n) {
+   void buildDP(const u8* data, size_t n) {
       if (!trieReady) rebuildTrie();
-      assert(n <= FSST_SAMPLELINE);
 
+      dpChoice.resize(n);
+      dpCost.resize(n + 8);
       for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
 
       for (int i = (int)n - 1; i >= 0; --i) {
@@ -298,37 +292,37 @@ struct SymbolMap {
          auto considerTrieMatch = [&](int off) {
             int code = trie[node].symbolCode;
             u32 cost = 1u + dpCost[i + off + 1];
-            if (code != -1 && cost <= bestCost) {
+            if (unlikely(code != -1 && cost <= bestCost)) {
                bestCost = cost;
                bestCode = (u16) code;
             }
          };
 
-         if (limit > 1 && node != -1) {
+         if (likely(limit > 1 && node != -1)) {
             node = trieGetChild(node, data[i + 1]);
-            if (node == -1) goto builddp_done;
+            if (unlikely(node == -1)) goto builddp_done;
             considerTrieMatch(1);
-            if (limit > 2) {
+            if (likely(limit > 2)) {
                node = trieGetChild(node, data[i + 2]);
                if (node == -1) goto builddp_done;
                considerTrieMatch(2);
-               if (limit > 3) {
+               if (likely(limit > 3)) {
                   node = trieGetChild(node, data[i + 3]);
                   if (node == -1) goto builddp_done;
                   considerTrieMatch(3);
-                  if (limit > 4) {
+                  if (likely(limit > 4)) {
                      node = trieGetChild(node, data[i + 4]);
                      if (node == -1) goto builddp_done;
                      considerTrieMatch(4);
-                     if (limit > 5) {
+                     if (likely(limit > 5)) {
                         node = trieGetChild(node, data[i + 5]);
                         if (node == -1) goto builddp_done;
                         considerTrieMatch(5);
-                        if (limit > 6) {
+                        if (likely(limit > 6)) {
                            node = trieGetChild(node, data[i + 6]);
                            if (node == -1) goto builddp_done;
                            considerTrieMatch(6);
-                           if (limit > 7) {
+                           if (likely(limit > 7)) {
                               node = trieGetChild(node, data[i + 7]);
                               if (node == -1) goto builddp_done;
                               considerTrieMatch(7);

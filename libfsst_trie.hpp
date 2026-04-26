@@ -53,7 +53,6 @@ typedef uint64_t u64;
 #define FSST_ENDIAN_MARKER ((u64) 1)
 #define FSST_VERSION_20190218 20190218
 #define FSST_VERSION ((u64) FSST_VERSION_20190218)
-#define FSST_SAMPLELINE ((size_t) 512)
 // "symbols" are character sequences (up to 8 bytes)
 // A symbol is compressed into a "code" of, in principle, one byte. But, we added an exception mechanism:
 // byte 255 followed by byte X represents the single-byte symbol X. Its code is 256+X.
@@ -200,8 +199,8 @@ struct SymbolTable {
    short trieFirstByte[256]; // first-byte dispatch into suffix-only trie nodes
 
    // DP working area
-   u32 dpCost[FSST_SAMPLELINE + 8];      // dpCost[i] = minimal encoded length of suffix starting at i
-   u16 dpChoice[FSST_SAMPLELINE];    // dpChoice[i] = chosen code at i (pre-finalize: 0..511; final: 0..255 plus 511=escape)
+   u32 dpCost[FSST_SAMPLEMAXSZ + 8];      // dpCost[i] = minimal encoded length of suffix starting at i
+   u16 dpChoice[FSST_SAMPLEMAXSZ];    // dpChoice[i] = chosen code at i (pre-finalize: 0..511; final: 0..255 plus 511=escape)
 
    // Trie storage (only built when needed)
    vector<TrieNode> trie;

@@ -333,7 +333,7 @@ SymbolMap *Btrfsst_buildSymbolMap(Counters& counters,
          size_t n = (size_t)(end - cur);
          if (n == 0) continue;
 
-         st->buildDP_scalar(cur, n);
+         st->buildDP(cur, n);
 
          u16 prev1 = 0xFFFF;
          u16 prev2 = 0xFFFF;
@@ -596,7 +596,7 @@ static inline ulong compressBulkDP(SymbolMap &symbolMap,
          return curLine;
       }
 
-      symbolMap.buildDP_scalar(cur, lenIn[curLine]);
+      symbolMap.buildDP(cur, lenIn[curLine]);
 
       size_t pos = 0;
       while (pos < lenIn[curLine]) {
@@ -655,15 +655,59 @@ long makeSample(vector<ulong> &sample, ulong nlines, const ulong len[]) {
    assert(sampleLong > 0);
    return (sampleLong < FSST_SAMPLEMAXSZ)?sampleLong:FSST_SAMPLEMAXSZ-sampleLong; 
 }
+
+vector<const u8*> makeSampleChunks(u8* sampleBuf, const u8* strIn[], const ulong **lenRef, ulong nlines) {
+   ulong totSize = 0;
+   const ulong *lenIn = *lenRef;
+   vector<const u8*> sample;
+
+   for (ulong i=0; i<nlines; i++)
+      totSize += lenIn[i];
+
+   if (totSize < FSST_SAMPLETARGET) {
+      for (ulong i=0; i<nlines; i++)
+         sample.push_back(strIn[i]);
+   } else {
+      ulong sampleRnd = FSST_HASH(4637947);
+      u8* sampleLim = sampleBuf + FSST_SAMPLETARGET;
+      ulong *sampleLen = new ulong[nlines + FSST_SAMPLEMAXSZ/FSST_SAMPLELINE];
+      *lenRef = sampleLen;
+      ulong *sampleLenLim = sampleLen + nlines + FSST_SAMPLEMAXSZ/FSST_SAMPLELINE;
+
+      while (sampleBuf < sampleLim && sampleLen < sampleLenLim) {
+         sampleRnd = FSST_HASH(sampleRnd);
+         ulong linenr = sampleRnd % nlines;
+         while (lenIn[linenr] == 0)
+            if (++linenr == nlines) linenr = 0;
+
+         ulong chunks = 1 + ((lenIn[linenr]-1) / FSST_SAMPLELINE);
+         sampleRnd = FSST_HASH(sampleRnd);
+         ulong chunk = FSST_SAMPLELINE * (sampleRnd % chunks);
+
+         ulong len = min(lenIn[linenr]-chunk, (ulong) FSST_SAMPLELINE);
+         memcpy(sampleBuf, strIn[linenr] + chunk, len);
+         sample.push_back(sampleBuf);
+         sampleBuf += *sampleLen++ = len;
+      }
+   }
+   return sample;
+}
 }  // namespace libfsst
 
 using namespace libfsst; 
 extern "C" fsst_encoder_t* fsst_create(ulong n, const ulong lenIn[], const u8 *strIn[], int dummy) {
-   vector<ulong> sample;
    (void) dummy;
-   long sampleSize = makeSample(sample, n?n:1, lenIn); // careful handling of input to get a right-size and representative sample
+   u8* sampleBuf = new u8[FSST_SAMPLEMAXSZ];
+   const ulong *sampleLen = lenIn;
+   vector<const u8*> sampleData = makeSampleChunks(sampleBuf, strIn, &sampleLen, n?n:1);
+   vector<ulong> sample(sampleData.size());
+   for (ulong i=0; i<sample.size(); i++) sample[i] = i;
+   long sampleSize = 0;
+   for (ulong i=0; i<sample.size(); i++) sampleSize += (long) sampleLen[i];
    Encoder *encoder = new Encoder();
-   encoder->symbolMap = shared_ptr<SymbolMap>(buildSymbolMap(encoder->counters, sampleSize, sample, lenIn, strIn));
+   encoder->symbolMap = shared_ptr<SymbolMap>(buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data()));
+   if (sampleLen != lenIn) delete[] sampleLen;
+   delete[] sampleBuf;
    return (fsst_encoder_t*) encoder;
 }
 
@@ -672,19 +716,26 @@ extern "C" fsst_encoder_t* Btrfsst_create(ulong n,
                                             const u8 *strIn[],
                                             int dummy,
                                             const fsst_options_t* optp) {
-   vector<ulong> sample;
    (void) dummy;
-   long sampleSize = makeSample(sample, n?n:1, lenIn);
+   u8* sampleBuf = new u8[FSST_SAMPLEMAXSZ];
+   const ulong *sampleLen = lenIn;
+   vector<const u8*> sampleData = makeSampleChunks(sampleBuf, strIn, &sampleLen, n?n:1);
+   vector<ulong> sample(sampleData.size());
+   for (ulong i=0; i<sample.size(); i++) sample[i] = i;
+   long sampleSize = 0;
+   for (ulong i=0; i<sample.size(); i++) sampleSize += (long) sampleLen[i];
    Encoder *encoder = new Encoder();
    fsst_options_t opt = optp ? *optp : fsst_options_t{0};
    unsigned train_flags = opt.flags & (FSST_OPT_DP_TRAIN | FSST_OPT_TRIPLES | FSST_OPT_PRUNE);
 
    if (train_flags == 0) {
-      encoder->symbolMap = shared_ptr<SymbolMap>(buildSymbolMap(encoder->counters, sampleSize, sample, lenIn, strIn));
+      encoder->symbolMap = shared_ptr<SymbolMap>(buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data()));
    } else {
-      encoder->symbolMap = shared_ptr<SymbolMap>(Btrfsst_buildSymbolMap(encoder->counters, sampleSize, sample, lenIn, strIn, opt));
+      encoder->symbolMap = shared_ptr<SymbolMap>(Btrfsst_buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data(), opt));
    }
 
+   if (sampleLen != lenIn) delete[] sampleLen;
+   delete[] sampleBuf;
    return (fsst_encoder_t*) encoder;
 }
 
