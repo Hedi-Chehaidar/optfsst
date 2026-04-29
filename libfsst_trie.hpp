@@ -63,7 +63,7 @@ typedef uint64_t u64;
 #define FSST_CODE_BASE      256UL /* first 256 codes [0,255] are pseudo codes: escaped bytes */
 #define FSST_CODE_MAX       (1UL<<FSST_CODE_BITS) /* all bits set: indicating a symbol that has not been assigned a code yet */
 #define FSST_CODE_MASK      (FSST_CODE_MAX-1UL)   /* all bits set: indicating a symbol that has not been assigned a code yet */
-
+#define FSST_SAMPLELINE ((size_t) 512)
 namespace libfsst {
 constexpr inline uint64_t swap64_if_be(uint64_t v) noexcept {
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
