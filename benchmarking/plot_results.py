@@ -12,7 +12,7 @@ def main(csv_path: str):
     config_order = list(dict.fromkeys(df["configuration"].astype(str).tolist()))
 
     # plotting CF
-    df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
+    '''df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
     df_cf   = df[["configuration", "CF"]].copy()
     # ---- Boxplot: CF ----
     plt.figure()
@@ -74,14 +74,14 @@ def main(csv_path: str):
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     out_png1 = "./plots/"+ metric + ".png"
-    plt.savefig(out_png1, dpi=300)
+    plt.savefig(out_png1, dpi=300)'''
 
 
 
     
     # ---- Boxplot: Time ----
     
-    '''# Coerce numeric where possible (non-numeric CF rows become NaN)
+    # Coerce numeric where possible (non-numeric CF rows become NaN)
     df["Time"] = pd.to_numeric(df["Time"], errors="coerce")
     df_time = df[["configuration", "Time"]].copy()
     plt.figure()
@@ -129,7 +129,7 @@ def main(csv_path: str):
     plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     out_png2 = "./plots/" + metric + ".png"
-    plt.savefig(out_png2, dpi=300)'''
+    plt.savefig(out_png2, dpi=300)
 
 if __name__ == "__main__":
     metric = sys.argv[1]
