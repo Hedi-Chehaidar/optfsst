@@ -54,6 +54,7 @@ typedef uint64_t u64;
 
 // "symbols" are character sequences (up to 8 bytes)
 // A symbol is compressed into a "code" of, 1.5 bytes (12 bits)
+#define FSST_SAMPLELINE ((size_t) 512)
 #define FSST_CODE_MAX 4096
 #define FSST_CODE_MASK      ((u16) (FSST_CODE_MAX-1)) 
 
