@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "../libfsst_trie.hpp"
+#include "../libfsst.hpp"
 
 namespace fs = std::filesystem;
 

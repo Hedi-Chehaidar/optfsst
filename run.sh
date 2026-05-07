@@ -5,7 +5,7 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR_AVX="$ROOT_DIR/build-avx512"
 BUILD_DIR_NOAVX="$ROOT_DIR/build-noavx512"
-BUILD_DIR_TRIE_NOAVX="$ROOT_DIR/build-trie"
+BUILD_DIR_12="$ROOT_DIR/build12"
 BENCH_DIR="$ROOT_DIR/benchmarking"
 
 step() {
@@ -19,43 +19,47 @@ fail() {
 
 trap 'fail "run.sh failed at line $LINENO"' ERR
 
-step "Configuring AVX build"
+step "Configuring AVX-512 FSST build"
 rm -rf "$BUILD_DIR_AVX"
 cmake -S "$ROOT_DIR" -B "$BUILD_DIR_AVX"
 
-step "Building AVX fsst"
-cmake --build "$BUILD_DIR_AVX" -j
+step "Building AVX-512 FSST binary"
+cmake --build "$BUILD_DIR_AVX" -j --target binary
 
-step "Configuring non-AVX build"
+step "Configuring scalar FSST build"
 rm -rf "$BUILD_DIR_NOAVX"
 cmake -S "$ROOT_DIR" -B "$BUILD_DIR_NOAVX" -DFSST_DISABLE_AVX512=ON
 
-step "Building non-AVX fsst"
-cmake --build "$BUILD_DIR_NOAVX" -j
+step "Building scalar FSST binary"
+cmake --build "$BUILD_DIR_NOAVX" -j --target binary
 
-step "Configuring trie build"
-rm -rf "$BUILD_DIR_TRIE_NOAVX"
-cmake -S "$ROOT_DIR" -B "$BUILD_DIR_TRIE_NOAVX" -DFSST_USE_TRIE_IMPL=ON -DFSST_DISABLE_AVX512=ON
+step "Configuring FSST12 build"
+rm -rf "$BUILD_DIR_12"
+cmake -S "$ROOT_DIR" -B "$BUILD_DIR_12"
 
-step "Building trie fsst"
-cmake --build "$BUILD_DIR_TRIE_NOAVX" -j
+step "Building FSST12 binary"
+cmake --build "$BUILD_DIR_12" -j --target binary12
 
 step "Building benchmark runner"
-g++ "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"
+g++ -std=c++20 -O3 "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"
 
-step "Running benchmarks"
+step "Running paper benchmarks"
 (
     cd "$BENCH_DIR"
     ./runner
 )
 
-if ! python3 -c "import pandas" >/dev/null 2>&1; then
-    fail "python module 'pandas' is not installed; skipping plot generation"
+if ! python3 -c "import pandas, matplotlib, seaborn" >/dev/null 2>&1; then
+    fail "python plotting dependencies are not installed"
 fi
 
 step "Generating plots"
 (
     cd "$BENCH_DIR"
-    python3 plot_results.py compression_speed_dbtext
-    python3 plot_results.py decompression_speed_dbtext
+    export MPLCONFIGDIR="/tmp/btrfsst-mplconfig"
+    mkdir -p "$MPLCONFIGDIR"
+    python3 plot_results.py improvement
+    python3 plot_results.py improvement12
+    python3 plot_results.py compression_speed_paper
+    python3 plot_results.py decompression_speed_paper
 )

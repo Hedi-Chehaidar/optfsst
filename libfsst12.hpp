@@ -57,8 +57,6 @@ typedef uint64_t u64;
 #define FSST_SAMPLELINE ((size_t) 512)
 #define FSST_CODE_MAX 4096
 #define FSST_CODE_MASK      ((u16) (FSST_CODE_MAX-1)) 
-#define FSST_SAMPLETARGET (1<<17) 
-#define FSST_SAMPLEMAXSZ ((long) 2*FSST_SAMPLETARGET) 
 
 namespace libfsst {
 inline uint64_t fsst_unaligned_load(u8 const* V) {
@@ -67,14 +65,8 @@ inline uint64_t fsst_unaligned_load(u8 const* V) {
     return Ret;
 }
 
-inline u64 symbol_len_mask(u32 len) {
-   assert(len >= 1 && len <= 8);
-   return (len == 8) ? ~0ULL : ((1ULL << (len * 8)) - 1ULL);
-}
-
-inline u32 round_up_8(u32 x) {
-   return (x + 7u) & ~7u;
-}
+#define likely(expr) __builtin_expect((expr), 1)
+#define unlikely(expr) __builtin_expect((expr), 0)
 
 struct Symbol {
    static const unsigned maxLength = 8;
@@ -149,25 +141,20 @@ struct SymbolMap {
    bool zeroTerminated;   // whether we are expecting zero-terminated strings (we then also produce zero-terminated compressed strings)
    u16 lenHisto[8];        // lenHisto[x] is the amount of symbols of byte-length (x+1) in this SymbolMap
 
-   struct Bucket {
-      u32 first;
-      u32 count;
-      u32 count8;
-
-      Bucket() : first(0), count(0), count8(0) {}
-      void clear() { first = 0; count = 0; count8 = 0; }
-      bool empty() const { return count == 0; }
+   struct TrieNode {
+      short symbolCode;
+      short child[256];
+      TrieNode() : symbolCode(-1) {
+         for (int i=0; i<256; ++i) child[i] = -1;
+      }
    };
 
-   Bucket bucket2[65536];
-   vector<u64> candBytes;
-   vector<u64> candMasks;
-   vector<u16> candCode;
-   vector<u8>  candLen;
-   bool bucketReady = false;
+   short trieFirstByte[256];
+   vector<TrieNode> trie;
+   bool trieReady = false;
 
-   vector<u32> dpCost;//[FSST_SAMPLEMAXSZ + 8];
-   vector<u16> dpChoice;//[FSST_SAMPLEMAXSZ];
+   vector<u32> dpCost;
+   vector<u16> dpChoice;
 
    SymbolMap() : symbolCount(256), zeroTerminated(false) {
       // stuff done once at startup
@@ -192,7 +179,9 @@ struct SymbolMap {
          shortCodes[i] = 4096 | (i & 255); // single-byte symbol
       memset(lenHisto, 0, sizeof(lenHisto)); // all unused
       lenHisto[0] = symbolCount = 256; // no need to clean symbols[] as no symbols are used
-      clearBuckets();
+      trieReady = false;
+      trie.clear();
+      for (int i=0; i<256; ++i) trieFirstByte[i] = -1;
    }
  
    u32 load() {
@@ -225,7 +214,7 @@ struct SymbolMap {
       }
       symbols[symbolCount++] = s;
       lenHisto[len-1]++;
-      bucketReady = false;
+      trieReady = false;
       return true;
    }
    /// Find symbol in hash table, return code
@@ -245,103 +234,108 @@ struct SymbolMap {
       return ret?ret:shortCodes[s.first2()];
    }
 
-   void clearBuckets() {
-      for (u32 i = 0; i < 65536; ++i)
-         bucket2[i].clear();
-      candBytes.clear();
-      candMasks.clear();
-      candCode.clear();
-      candLen.clear();
-      bucketReady = false;
+   inline void trieReset() {
+      trie.clear();
+      trie.reserve((8 * 4096) + 1);
+      for (int i=0; i<256; ++i) trieFirstByte[i] = -1;
    }
 
-   static inline bool bucketableSymbol(const Symbol& s) {
-      return s.length() >= 2;
+   inline int trieGetChild(int nodeIdx, u8 byte) const {
+      return trie[nodeIdx].child[byte];
    }
 
-   static inline u16 bucketKey(const Symbol& s) {
-      assert(s.length() >= 2);
-      return s.first2();
-   }
+   inline void trieInsertSymbolBytes(const Symbol& s, u16 code) {
+      u32 L = s.length();
+      if (L <= 1) return;
 
-   void rebuildBuckets() {
-      clearBuckets();
-
-      vector<u32> hist(65536, 0);
-      for (u32 code = 256; code < symbolCount; ++code) {
-         const Symbol& s = symbols[code];
-         if (!bucketableSymbol(s)) continue;
-         hist[bucketKey(s)]++;
+      u8 first = s.symbol[0];
+      short& root = trieFirstByte[first];
+      if (root == -1) {
+         root = (short) trie.size();
+         trie.emplace_back();
       }
 
-      u32 total = 0;
-      for (u32 k = 0; k < 65536; ++k) {
-         bucket2[k].first = total;
-         bucket2[k].count = hist[k];
-         bucket2[k].count8 = round_up_8(hist[k]);
-         total += bucket2[k].count8;
-      }
-
-      candBytes.resize(total);
-      candMasks.resize(total);
-      candCode.resize(total);
-      candLen.resize(total);
-
-      vector<u32> next(65536, 0);
-      for (u32 code = 256; code < symbolCount; ++code) {
-         const Symbol& s = symbols[code];
-         if (!bucketableSymbol(s)) continue;
-         u16 key = bucketKey(s);
-         u32 p = bucket2[key].first + next[key]++;
-         candBytes[p] = *(u64*) s.symbol;
-         candMasks[p] = symbol_len_mask(s.length());
-         candCode[p] = (u16) code;
-         candLen[p] = s.length();
-      }
-
-      for (u32 k = 0; k < 65536; ++k) {
-         u32 begin = bucket2[k].first + bucket2[k].count;
-         u32 end = bucket2[k].first + bucket2[k].count8;
-         for (u32 p = begin; p < end; ++p) {
-            candBytes[p] = 0;
-            candMasks[p] = 0;
-            candCode[p] = 0;
-            candLen[p] = 1;
+      int node = root;
+      for (u32 i = 1; i < L; ++i) {
+         u8 b = s.symbol[i];
+         short& nxt = trie[node].child[b];
+         if (nxt == -1) {
+            nxt = (short) trie.size();
+            trie.emplace_back();
          }
+         node = trie[node].child[b];
       }
+      trie[node].symbolCode = (short) code;
+   }
 
-      bucketReady = true;
+   void rebuildTrie() {
+      trieReset();
+      for (u32 code = 256; code < symbolCount; ++code) {
+         trieInsertSymbolBytes(symbols[code], (u16) code);
+      }
+      trieReady = true;
    }
 
    void buildDP(const u8* data, size_t n) {
-      if (!bucketReady) rebuildBuckets();
-      assert(n <= FSST_SAMPLELINE);
+      if (!trieReady) rebuildTrie();
+
       dpChoice.resize(n);
       dpCost.resize(n + 8);
       for (size_t t = 0; t < 8; ++t) dpCost[n + t] = 0;
 
-      u64 w = 0;
       for (int i = (int)n - 1; i >= 0; --i) {
-         w = (w << 8) | data[i];
-         // In fsst12, the first 256 entries in symbols[] are the literal 1-byte symbols.
-         // The compressed representation may carry length bits in shortCodes/findExpansion(),
-         // but dpChoice stores the plain symbol code index used to look up symbols[].
-         u16 bestCode = (u16)(u8)w;
-         double bestCost = 1u + dpCost[i + 1];
-         u8 chosenLen = 1;
+         u8 b = data[i];
+         u16 bestCode = b;
+         u32 bestCost = 1u + dpCost[i + 1];
 
-         Bucket bk = bucket2[(u16)w];
-         for (u32 p = bk.first; p < bk.first + bk.count; ++p) {
-            if (((w ^ candBytes[p]) & candMasks[p]) != 0) continue;
-            u8 len = candLen[p];
-            u32 cost = 1u + dpCost[i + len];
-            if (cost < bestCost || (cost == bestCost && len >= chosenLen)) {
+         int node = trieFirstByte[b];
+         int limit = min((int) Symbol::maxLength, (int) (n - (size_t) i));
+         auto considerTrieMatch = [&](int off) {
+            int code = trie[node].symbolCode;
+            u32 cost = 1u + dpCost[i + off + 1];
+            if (unlikely(code != -1 && cost <= bestCost)) {
                bestCost = cost;
-               bestCode = candCode[p];
-               chosenLen = len;
+               bestCode = (u16) code;
+            }
+         };
+
+         if (likely(limit > 1 && node != -1)) {
+            node = trieGetChild(node, data[i + 1]);
+            if (unlikely(node == -1)) goto builddp_done;
+            considerTrieMatch(1);
+            if (likely(limit > 2)) {
+               node = trieGetChild(node, data[i + 2]);
+               if (node == -1) goto builddp_done;
+               considerTrieMatch(2);
+               if (likely(limit > 3)) {
+                  node = trieGetChild(node, data[i + 3]);
+                  if (node == -1) goto builddp_done;
+                  considerTrieMatch(3);
+                  if (likely(limit > 4)) {
+                     node = trieGetChild(node, data[i + 4]);
+                     if (node == -1) goto builddp_done;
+                     considerTrieMatch(4);
+                     if (likely(limit > 5)) {
+                        node = trieGetChild(node, data[i + 5]);
+                        if (node == -1) goto builddp_done;
+                        considerTrieMatch(5);
+                        if (likely(limit > 6)) {
+                           node = trieGetChild(node, data[i + 6]);
+                           if (node == -1) goto builddp_done;
+                           considerTrieMatch(6);
+                           if (likely(limit > 7)) {
+                              node = trieGetChild(node, data[i + 7]);
+                              if (node == -1) goto builddp_done;
+                              considerTrieMatch(7);
+                           }
+                        }
+                     }
+                  }
+               }
             }
          }
 
+builddp_done:
          dpCost[i] = bestCost;
          dpChoice[i] = bestCode;
       }
