@@ -56,7 +56,7 @@ fi
 step "Generating plots"
 (
     cd "$BENCH_DIR"
-    export MPLCONFIGDIR="/tmp/btrfsst-mplconfig"
+    export MPLCONFIGDIR="/tmp/optfsst-mplconfig"
     mkdir -p "$MPLCONFIGDIR"
     python3 plot_results.py improvement
     python3 plot_results.py improvement12

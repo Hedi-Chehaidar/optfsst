@@ -204,12 +204,12 @@ int main(int argc, char* argv[]) {
       } else {
          unsigned char tmp[FSST_MAXHEADER];
          auto t0 = clock::now();
-         fsst_encoder_t* encoder = Btrfsst_create(1, &srcLen[swap],
+         fsst_encoder_t* encoder = Optfsst_create(1, &srcLen[swap],
                                         const_cast<const unsigned char **>(&srcBuf[swap]), 0, &opt);
          
          size_t hdr = fsst_export(encoder, tmp);
          auto t1 = clock::now();
-         if (Btrfsst_compress(encoder, 1, &srcLen[swap], const_cast<const unsigned char **>(&srcBuf[swap]),
+         if (Optfsst_compress(encoder, 1, &srcLen[swap], const_cast<const unsigned char **>(&srcBuf[swap]),
                      FSST_MEMBUF * 2, dstMem[swap] + FSST_MAXHEADER + 3,
                      &dstLen[swap], &dstBuf[swap], &opt) < 1)
 

@@ -241,7 +241,7 @@ SymbolMap *buildSymbolMap(Counters& counters, long sampleParam, vector<ulong>& s
    return bestMap;
 }
 
-SymbolMap *Btrfsst_buildSymbolMap(Counters& counters,
+SymbolMap *Optfsst_buildSymbolMap(Counters& counters,
                                     long sampleParam,
                                     vector<ulong>& sample,
                                     const ulong len[],
@@ -711,7 +711,7 @@ extern "C" fsst_encoder_t* fsst_create(ulong n, const ulong lenIn[], const u8 *s
    return (fsst_encoder_t*) encoder;
 }
 
-extern "C" fsst_encoder_t* Btrfsst_create(ulong n,
+extern "C" fsst_encoder_t* Optfsst_create(ulong n,
                                             const ulong lenIn[],
                                             const u8 *strIn[],
                                             int dummy,
@@ -731,7 +731,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(ulong n,
    if (train_flags == 0) {
       encoder->symbolMap = shared_ptr<SymbolMap>(buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data()));
    } else {
-      encoder->symbolMap = shared_ptr<SymbolMap>(Btrfsst_buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data(), opt));
+      encoder->symbolMap = shared_ptr<SymbolMap>(Optfsst_buildSymbolMap(encoder->counters, sampleSize, sample, sampleLen, sampleData.data(), opt));
    }
 
    if (sampleLen != lenIn) delete[] sampleLen;
@@ -840,7 +840,7 @@ extern "C" ulong fsst_compress(fsst_encoder_t *encoder, ulong nlines, const ulon
    return _compressAuto((Encoder*) encoder, nlines, lenIn, strIn, size, output, lenOut, strOut, 3*simd);
 }
 
-extern "C" ulong Btrfsst_compress(fsst_encoder_t *encoder,
+extern "C" ulong Optfsst_compress(fsst_encoder_t *encoder,
                                     ulong nlines,
                                     const ulong lenIn[],
                                     const u8 *strIn[],

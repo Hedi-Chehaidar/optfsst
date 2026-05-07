@@ -60,7 +60,7 @@ extern "C" {
 typedef void* fsst_encoder_t; /* opaque type - it wraps around a rather large (~3MB) C++ object */
 
 #define THRESHOLD (0)
-/* Btrfsst innovations as flags to allow flexibility in table construction and encoding */
+/* OptFSST innovations as flags to allow flexibility in table construction and encoding */
 #define FSST_OPT_DP_TRAIN   (1u<<0)
 #define FSST_OPT_DP_ENCODE  (1u<<1)
 #define FSST_OPT_TRIPLES    (1u<<2)
@@ -87,7 +87,7 @@ fsst_create(
 );
 
 fsst_encoder_t*
-Btrfsst_create(
+Optfsst_create(
    unsigned long n,
    const unsigned long lenIn[],
    const unsigned char *strIn[],
@@ -142,7 +142,7 @@ fsst_compress(
 );
 
 unsigned long
-Btrfsst_compress(
+Optfsst_compress(
    fsst_encoder_t *encoder,
    unsigned long nstrings,
    const unsigned long lenIn[],

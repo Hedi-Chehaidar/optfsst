@@ -245,7 +245,7 @@ SymbolTable *buildSymbolTable(Counters& counters, vector<const u8*> line, const 
 }
 
 
-// BtrFSST training helpers
+// OptFSST training helpers
 
 static inline u32 pack3(u16 a, u16 b, u16 c) {
    // each code fits in 9 bits (0..511)
@@ -330,7 +330,7 @@ static TrieMetrics collectTrieMetrics(const SymbolTable& st) {
 
 
 
-SymbolTable *Btrfsst_buildSymbolTable(Counters& counters,
+SymbolTable *Optfsst_buildSymbolTable(Counters& counters,
                                        vector<const u8*> line,
                                        const size_t len[],
                                        bool zeroTerminated,
@@ -914,7 +914,7 @@ static inline size_t compressBulk(SymbolTable &symbolTable, size_t nlines, const
    return curLine;
 }
 
-// BtrFSST: scalar compression using DP parsing (same output format)
+// OptFSST: scalar compression using DP parsing (same output format)
 static inline size_t compressBulkDP(SymbolTable &symbolTable,
                                     size_t nlines,
                                     const size_t lenIn[],
@@ -1030,7 +1030,7 @@ extern "C" fsst_encoder_t* fsst_create(size_t n, const size_t lenIn[], const u8 
    return (fsst_encoder_t*) encoder;
 }
 
-extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
+extern "C" fsst_encoder_t* Optfsst_create(size_t n,
                                          const size_t lenIn[],
                                          const u8 *strIn[],
                                          int zeroTerminated,
@@ -1047,7 +1047,7 @@ extern "C" fsst_encoder_t* Btrfsst_create(size_t n,
    if (opt.flags == 0) {
       encoder->symbolTable = shared_ptr<SymbolTable>(buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated));
    } else {
-      encoder->symbolTable = shared_ptr<SymbolTable>(Btrfsst_buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated, opt));
+      encoder->symbolTable = shared_ptr<SymbolTable>(Optfsst_buildSymbolTable(encoder->counters, sample, sampleLen, zeroTerminated, opt));
    }
 
    if (sampleLen != lenIn) delete[] sampleLen;
@@ -1066,7 +1066,7 @@ TrieMetrics measureLastTrainingTrie(size_t n,
 
    Counters counters;
    TrieMetrics metrics;
-   SymbolTable* symbolTable = Btrfsst_buildSymbolTable(counters, sample, sampleLen, zeroTerminated, opt, &metrics);
+   SymbolTable* symbolTable = Optfsst_buildSymbolTable(counters, sample, sampleLen, zeroTerminated, opt, &metrics);
 
    delete symbolTable;
    if (sampleLen != lenIn) delete[] sampleLen;
@@ -1203,7 +1203,7 @@ extern "C" size_t fsst_compress(fsst_encoder_t *encoder, size_t nlines, const si
    return _compressAuto((Encoder*) encoder, nlines, lenIn, strIn, size, output, lenOut, strOut, 3*simd);
 }
 
-extern "C" size_t Btrfsst_compress(fsst_encoder_t *encoder,
+extern "C" size_t Optfsst_compress(fsst_encoder_t *encoder,
                                   size_t nlines,
                                   const size_t lenIn[],
                                   const u8 *strIn[],

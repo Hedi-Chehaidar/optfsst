@@ -187,7 +187,7 @@ struct SymbolTable {
    bool zeroTerminated;   // whether we are expecting zero-terminated strings (we then also produce zero-terminated compressed strings)
    u16 lenHisto[FSST_CODE_BITS]; // lenHisto[x] is the amount of symbols of byte-length (x+1) in this SymbolTable
 
-   // BtrFSST: Trie + DP parsing
+   // OptFSST: Trie + DP parsing
    struct TrieNode {
       short symbolCode;      // code of a symbol ending here, -1 if none
       short child[256];      // child indices, -1 if absent
@@ -459,7 +459,7 @@ builddp_done:
           }           
       } 
       nSymbols = 0; // no need to clean symbols[] as no symbols are used
-      // reset flags and clear vectors for BtrFSST
+      // reset flags and clear vectors for OptFSST
       trieReadyTrain = false;
       trieReadyFinal = false;
       trie.clear();

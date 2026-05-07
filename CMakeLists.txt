@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(btrfsst)
+project(optfsst)
 
 option(FSST_DISABLE_AVX512 "Disable AVX-512 code paths and runtime dispatch" OFF)
 

@@ -300,7 +300,7 @@ int main() {
         {"FSST + dp-encode", "--dp-encode"},
         {"+ dp-train", "--dp-train --dp-encode"},
         {"+ triples", "--dp-train --triples --dp-encode"},
-        {"+ prune = BtrFSST", "--dp-train --triples --prune --dp-encode"},
+        {"+ prune = OptFSST", "--dp-train --triples --prune --dp-encode"},
     };
 
     const std::vector<Config> improvement_configs_12bit = {
@@ -310,7 +310,7 @@ int main() {
         {"FSST12 + dp-encode", "--dp-encode"},
         {"+ dp-train", "--dp-train --dp-encode"},
         {"+ triples", "--dp-train --triples --dp-encode"},
-        {"+ prune = BtrFSST12", "--dp-train --triples --prune --dp-encode"},
+        {"+ prune = OptFSST12", "--dp-train --triples --prune --dp-encode"},
     };
 
     auto prepend_baseline = [](std::vector<Config> configs, const std::string& label) {
@@ -319,7 +319,7 @@ int main() {
     };
 
     run_improvement_benchmark(
-        "btrfsst",
+        "optfsst",
         fsst_scalar,
         prepend_baseline(improvement_configs_8bit, "FSST"),
         files,
@@ -327,7 +327,7 @@ int main() {
         tmp_dir);
 
     run_improvement_benchmark(
-        "btrfsst12",
+        "optfsst12",
         fsst12,
         prepend_baseline(improvement_configs_12bit, "FSST12"),
         files,
@@ -337,9 +337,9 @@ int main() {
     const std::vector<SpeedVariant> speed_variants = {
         {"FSST", fsst_scalar.string(), ""},
         {"FSST (SIMD)", fsst_simd.string(), ""},
-        {"BtrFSST", fsst_scalar.string(), "--dp-train --triples --prune --dp-encode"},
+        {"OptFSST", fsst_scalar.string(), "--dp-train --triples --prune --dp-encode"},
         {"FSST12", fsst12.string(), ""},
-        {"BtrFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
+        {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
     };
 
     run_speed_benchmark(

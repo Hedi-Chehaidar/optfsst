@@ -35,12 +35,12 @@ uint64_t compressCorpus(const vector<string>& data, double& compressionTime, boo
     }
 
     auto startTime = chrono::steady_clock::now();
-    auto encoder = Btrfsst_create(data.size(), rowLens.data(), rowPtrs.data(), false, &opt);
+    auto encoder = Optfsst_create(data.size(), rowLens.data(), rowPtrs.data(), false, &opt);
     auto createTime = chrono::steady_clock::now();
     vector<unsigned char> compressionBuffer;
     compressionBuffer.resize(16 + 2 * totalLen);
     auto compressTime = chrono::steady_clock::now();
-    Btrfsst_compress(encoder, data.size(), rowLens.data(), rowPtrs.data(), compressionBuffer.size(), compressionBuffer.data(), compressedRowLens.data(), compressedRowPtrs.data(), &opt);
+    Optfsst_compress(encoder, data.size(), rowLens.data(), rowPtrs.data(), compressionBuffer.size(), compressionBuffer.data(), compressedRowLens.data(), compressedRowPtrs.data(), &opt);
     auto stopTime = chrono::steady_clock::now();
     unsigned long compressedLen = data.empty() ? 0 : (compressedRowPtrs[data.size() - 1] + compressedRowLens[data.size() - 1] - compressionBuffer.data());
 
@@ -99,7 +99,7 @@ int main() {
         {"FSST + dp-encode", FSST_OPT_DP_ENCODE},
         {"+ dp-train", FSST_OPT_DP_TRAIN | FSST_OPT_DP_ENCODE},
         {"+ triples", FSST_OPT_TRIPLES | FSST_OPT_DP_TRAIN | FSST_OPT_DP_ENCODE},
-        {"+ prune = BtrFSST", FSST_OPT_TRIPLES | FSST_OPT_DP_TRAIN | FSST_OPT_PRUNE | FSST_OPT_DP_ENCODE},
+        {"+ prune = OptFSST", FSST_OPT_TRIPLES | FSST_OPT_DP_TRAIN | FSST_OPT_PRUNE | FSST_OPT_DP_ENCODE},
     };
 
     // Output CSV path
