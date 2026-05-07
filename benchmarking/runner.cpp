@@ -273,7 +273,7 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
 }
 
 int main() {
-    const fs::path corpus_root = "../fsst-paper/dbtext"; //"../data/refined"; 
+    const fs::path corpus_root = "../data/refined"; //"../fsst-paper/dbtext"; 
     const fs::path csv_dir = "./csv";
     const fs::path tmp_dir = "./tmp";
 
