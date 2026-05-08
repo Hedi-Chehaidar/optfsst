@@ -44,6 +44,11 @@ using namespace std;
 
 namespace {
 
+enum class TimingMode {
+   TableConstruction,
+   Compression
+};
+
 class BinarySemaphore {
    private:
    mutex m;
@@ -112,10 +117,11 @@ void writer(ofstream& dst) {
 int main(int argc, char* argv[]) {
    size_t srcTot = 0, dstTot = 0;
    fsst_options_t opt = {0};
+   TimingMode timingMode = TimingMode::Compression;
    auto isFlag = [](const char* s, const char* f){ return strcmp(s,f)==0; };
 
    if (argc < 2) {
-      cerr << "usage: " << argv[0] << " [--dp-train] [--dp-encode] [--triples] [--prune] infile [outfile]\n"
+      cerr << "usage: " << argv[0] << " [--dp-train] [--dp-encode] [--triples] [--prune] [--time-table-construction|--time-compression] infile [outfile]\n"
            << "       " << argv[0] << " -d infile outfile\n";
       return -1;
    }
@@ -137,13 +143,15 @@ int main(int argc, char* argv[]) {
       else if (isFlag(argv[argi], "--dp-encode")) opt.flags |= FSST_OPT_DP_ENCODE;
       else if (isFlag(argv[argi], "--triples"))   opt.flags |= FSST_OPT_TRIPLES;
       else if (isFlag(argv[argi], "--prune"))     opt.flags |= FSST_OPT_PRUNE;
+      else if (isFlag(argv[argi], "--time-table-construction")) timingMode = TimingMode::TableConstruction;
+      else if (isFlag(argv[argi], "--time-compression")) timingMode = TimingMode::Compression;
       else break;
       argi++;
    }
 
    if ((decompress && argc - argi != 2) || (!decompress && (argc - argi < 1 || argc - argi > 2))) {
       cerr << "bad args.\n";
-      cerr << "usage: " << argv[0] << " [--dp-train] [--dp-encode] [--triples] [--prune] infile [outfile]\n"
+      cerr << "usage: " << argv[0] << " [--dp-train] [--dp-encode] [--triples] [--prune] [--time-table-construction|--time-compression] infile [outfile]\n"
            << "       " << argv[0] << " -d infile outfile\n";
       return -1;
    }
@@ -200,27 +208,32 @@ int main(int argc, char* argv[]) {
          auto t0 = clock::now();
          dstLen[swap] = fsst_decompress(&decoder, srcLen[swap] - hdr, srcBuf[swap] + hdr, FSST_MEMBUF, dstBuf[swap] = dstMem[swap]);
          auto t1 = clock::now();
-         d_time += std::chrono::duration<double>(t1 - t0).count() ;
+         d_time += chrono::duration<double>(t1 - t0).count() ;
       } else {
          unsigned char tmp[FSST_MAXHEADER];
          auto t0 = clock::now();
          fsst_encoder_t* encoder = Optfsst_create(1, &srcLen[swap],
                                         const_cast<const unsigned char **>(&srcBuf[swap]), 0, &opt);
          
-         size_t hdr = fsst_export(encoder, tmp);
          auto t1 = clock::now();
+         size_t hdr = fsst_export(encoder, tmp);
+         auto t2 = clock::now();
          if (Optfsst_compress(encoder, 1, &srcLen[swap], const_cast<const unsigned char **>(&srcBuf[swap]),
                      FSST_MEMBUF * 2, dstMem[swap] + FSST_MAXHEADER + 3,
                      &dstLen[swap], &dstBuf[swap], &opt) < 1)
 
             return -1;
-         auto t2 = clock::now();
+         auto t3 = clock::now();
          dstLen[swap] += 3 + hdr;
          dstBuf[swap] -= 3 + hdr;
          SERIALIZE(dstLen[swap],dstBuf[swap]); // block starts with size
          copy(tmp, tmp+hdr, dstBuf[swap]+3); // then the header (followed by the compressed bytes which are already there)
          fsst_destroy(encoder);
-         d_time += std::chrono::duration<double>(t2 - t1).count() ;
+         if (timingMode == TimingMode::TableConstruction) {
+            d_time += chrono::duration<double>(t1 - t0).count() ;
+         } else {
+            d_time += chrono::duration<double>(t3 - t2).count() ;
+         }
       }
       srcTot += srcLen[swap];
       dstTot += dstLen[swap];

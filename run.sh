@@ -62,4 +62,5 @@ step "Generating plots"
     python3 plot_results.py improvement12
     python3 plot_results.py compression_speed_paper
     python3 plot_results.py decompression_speed_paper
+    python3 plot_results.py table_construction_speed_paper
 )

@@ -216,9 +216,13 @@ static void run_improvement_benchmark(const std::string& title,
 
 static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
                                 const std::vector<fs::path>& files,
+                                const fs::path& table_construction_csv,
                                 const fs::path& compression_csv,
                                 const fs::path& decompression_csv,
                                 const fs::path& tmp_root) {
+    std::ofstream table_construction_out(table_construction_csv);
+    table_construction_out << "configuration,Time,file\n";
+
     std::ofstream compression_out(compression_csv);
     compression_out << "configuration,Time,file\n";
 
@@ -230,11 +234,34 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
             const fs::path compressed = tmp_root / (variant.label + "_compressed.bin");
             const fs::path decompressed = tmp_root / (variant.label + "_decompressed.bin");
 
+            if (variant.label != "FSST (SIMD)") {
+                double table_construction_time = 0.0;
+                std::ostringstream table_construction_cmd;
+                table_construction_cmd << shell_quote(variant.binary);
+                if (!variant.args.empty()) table_construction_cmd << " " << variant.args;
+                table_construction_cmd << " --time-table-construction "
+                                       << shell_quote(file.string()) << " "
+                                       << shell_quote(compressed.string());
+
+                for (int rep = 0; rep < 5; ++rep) {
+                    int exit_code = 0;
+                    const std::string stdout_text = run_and_capture_stdout(table_construction_cmd.str(), exit_code);
+                    table_construction_time += parse_timing_output(table_construction_cmd.str(), exit_code, stdout_text);
+                }
+                table_construction_time /= 5.0;
+
+                table_construction_out << variant.label << ","
+                                       << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / table_construction_time) << ","
+                                       << file.string() << "\n";
+            }
+
             double compression_time = 0.0;
             std::ostringstream compress_cmd;
             compress_cmd << shell_quote(variant.binary);
             if (!variant.args.empty()) compress_cmd << " " << variant.args;
-            compress_cmd << " " << shell_quote(file.string()) << " " << shell_quote(compressed.string());
+            compress_cmd << " --time-compression "
+                         << shell_quote(file.string()) << " "
+                         << shell_quote(compressed.string());
 
             for (int rep = 0; rep < 5; ++rep) {
                 int exit_code = 0;
@@ -345,6 +372,7 @@ int main() {
     run_speed_benchmark(
         speed_variants,
         files,
+        csv_dir / "table_construction_speed_paper.csv",
         csv_dir / "compression_speed_paper.csv",
         csv_dir / "decompression_speed_paper.csv",
         tmp_dir);

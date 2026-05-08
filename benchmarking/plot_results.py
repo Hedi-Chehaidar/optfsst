@@ -8,6 +8,16 @@ import seaborn as sns
 metric = ""
 
 
+def metric_title(metric_name):
+    if metric_name.startswith("table_construction"):
+        return "Table construction speed"
+    if metric_name.startswith("compression"):
+        return "Compression speed"
+    if metric_name.startswith("decompression"):
+        return "Decompression speed"
+    return metric_name.replace("_", " ").title()
+
+
 def add_mean_markers(ax, df, value_column, config_order, text_offset_x, text_va):
     means = df.groupby("configuration")[value_column].mean().reindex(config_order).values
     x_pos = np.arange(len(config_order))
@@ -71,7 +81,10 @@ def plot_speed(df, config_order):
     base_boxplot(ax, df_time, "Time", config_order)
     add_mean_markers(ax, df_time, "Time", config_order, 0.08, "bottom")
     ax.set_xlabel("Configuration")
-    if metric.startswith("compression"):
+    ax.set_title(metric_title(metric))
+    if metric.startswith("table_construction"):
+        ax.set_ylabel("Table construction speed [MB/s]")
+    elif metric.startswith("compression"):
         ax.set_ylabel("Compression speed [MB/s]")
     else:
         ax.set_ylabel("Decompression speed [MB/s]")
