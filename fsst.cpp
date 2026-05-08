@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
          SERIALIZE(dstLen[swap],dstBuf[swap]); // block starts with size
          copy(tmp, tmp+hdr, dstBuf[swap]+3); // then the header (followed by the compressed bytes which are already there)
          fsst_destroy(encoder);
-         d_time += std::chrono::duration<double>(t2 - t0).count() ;
+         d_time += std::chrono::duration<double>(t2 - t1).count() ;
       }
       srcTot += srcLen[swap];
       dstTot += dstLen[swap];
