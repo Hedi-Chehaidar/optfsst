@@ -215,6 +215,7 @@ static void run_improvement_benchmark(const std::string& title,
 }
 
 static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
+                                const std::vector<SpeedVariant>& decompression_variants,
                                 const std::vector<fs::path>& files,
                                 const fs::path& table_construction_csv,
                                 const fs::path& compression_csv,
@@ -274,26 +275,31 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
                             << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / compression_time) << ","
                             << file.string() << "\n";
 
-            double decompression_time = 0.0;
-            std::ostringstream decompress_cmd;
-            decompress_cmd << shell_quote(variant.binary)
-                           << " -d "
-                           << shell_quote(compressed.string()) << " "
-                           << shell_quote(decompressed.string());
+            const auto decompression_variant =
+                std::find_if(decompression_variants.begin(), decompression_variants.end(),
+                             [&](const SpeedVariant& candidate) { return candidate.label == variant.label; });
+            if (decompression_variant != decompression_variants.end()) {
+                double decompression_time = 0.0;
+                std::ostringstream decompress_cmd;
+                decompress_cmd << shell_quote(decompression_variant->binary)
+                               << " -d "
+                               << shell_quote(compressed.string()) << " "
+                               << shell_quote(decompressed.string());
 
-            for (int rep = 0; rep < 5; ++rep) {
-                int exit_code = 0;
-                const std::string stdout_text = run_and_capture_stdout(decompress_cmd.str(), exit_code);
-                decompression_time += parse_timing_output(decompress_cmd.str(), exit_code, stdout_text);
-            }
-            decompression_time /= 5.0;
+                for (int rep = 0; rep < 5; ++rep) {
+                    int exit_code = 0;
+                    const std::string stdout_text = run_and_capture_stdout(decompress_cmd.str(), exit_code);
+                    decompression_time += parse_timing_output(decompress_cmd.str(), exit_code, stdout_text);
+                }
+                decompression_time /= 5.0;
 
-            decompression_out << variant.label << ","
-                              << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / decompression_time) << ","
-                              << file.string() << "\n";
+                decompression_out << variant.label << ","
+                                  << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / decompression_time) << ","
+                                  << file.string() << "\n";
 
-            if (!files_equal(file, decompressed)) {
-                throw std::runtime_error("decompression correctness failed for " + variant.label + " on " + file.string());
+                if (!files_equal(file, decompressed)) {
+                    throw std::runtime_error("decompression correctness failed for " + variant.label + " on " + file.string());
+                }
             }
         }
     }
@@ -368,9 +374,16 @@ int main() {
         {"FSST12", fsst12.string(), ""},
         {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
     };
+    const std::vector<SpeedVariant> decompression_variants = {
+        {"FSST", fsst_scalar.string(), ""},
+        {"OptFSST", fsst_scalar.string(), "--dp-train --triples --prune --dp-encode"},
+        {"FSST12", fsst12.string(), ""},
+        {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
+    };
 
     run_speed_benchmark(
         speed_variants,
+        decompression_variants,
         files,
         csv_dir / "table_construction_speed_paper.csv",
         csv_dir / "compression_speed_paper.csv",

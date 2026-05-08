@@ -15,6 +15,7 @@ You can build the project and compile it the same way like in the FSST repositor
 For the paper benchmarks, run `./run.sh`. It builds the scalar and AVX-512 8-bit binaries plus the 12-bit binary, then generates:
 
 - compression-factor improvement CSVs and plots for OptFSST and OptFSST12
-- compression-speed and decompression-speed CSVs and plots comparing `FSST`, `FSST (SIMD)`, `OptFSST`, `FSST12`, and `OptFSST12`
+- compression-speed CSVs and plots comparing `FSST`, `FSST (SIMD)`, `OptFSST`, `FSST12`, and `OptFSST12`
+- decompression-speed CSVs and plots comparing `FSST`, `OptFSST`, `FSST12`, and `OptFSST12`
 
 More details in thesis and presentation.
