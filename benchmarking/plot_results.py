@@ -277,6 +277,18 @@ def maybe_show():
         plt.show()
 
 
+def center_xlabel_to_tight_bbox(fig, ax):
+    for _ in range(2):
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        tb = fig.get_tightbbox(renderer)
+        fig_w_in = fig.get_size_inches()[0]
+        target_fig_x = (tb.x0 + tb.x1) / 2.0 / fig_w_in
+        ax_pos = ax.get_position()
+        target_ax_x = (target_fig_x - ax_pos.x0) / ax_pos.width
+        ax.xaxis.label.set_x(target_ax_x)
+
+
 MEDIAN_LINE_HALF_WIDTH = 0.18
 
 
@@ -414,6 +426,7 @@ def plot_cf(df, config_order):
         add_marker_legend(ax)
     output_path = "./plots/" + metric + ".pdf"
     fig.tight_layout(pad=0.6)
+    center_xlabel_to_tight_bbox(fig, ax)
     fig.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
     maybe_show()
 
@@ -460,6 +473,7 @@ def plot_speed(df, config_order):
         add_marker_legend(ax)
     output_path = "./plots/" + metric + ".pdf"
     fig.tight_layout(pad=0.6)
+    center_xlabel_to_tight_bbox(fig, ax)
     fig.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
     maybe_show()
 
