@@ -105,7 +105,7 @@ matplotlib.rcParams.update(
         "axes.labelcolor": "black",
         "axes.xmargin": 0.0125,
         "xtick.labelsize": FONT_SIZES["tick"],
-        "ytick.labelsize": FONT_SIZES["tick"] - 3,
+        "ytick.labelsize": FONT_SIZES["tick"],
         "xtick.direction": "in",
         "ytick.direction": "in",
         "xtick.major.size": 0,
@@ -249,6 +249,8 @@ def display_label(configuration):
 
 
 def separator_labels_for_metric():
+    if metric.endswith("_block_compressors"):
+        return ()
     if metric.startswith("compression") or metric.startswith("decompression") or metric.startswith("table_construction"):
         return SPEED_SEPARATOR_LABELS
     return DP_ENCODE_SEPARATORS
@@ -331,12 +333,12 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
     left_center = (left + sep_x) / 2
     right_center = (sep_x + right) / 2
     ax.text(
-        left_center, 1.02, "W/O final DP encoding",
+        left_center, 1.02, "w/o text DP-encoding",
         transform=trans, ha="center", va="bottom",
         fontsize=FONT_SIZES["legend"], clip_on=False,
     )
     ax.text(
-        right_center, 1.02, "W final DP encoding",
+        right_center, 1.02, "w/ text DP-encoding",
         transform=trans, ha="center", va="bottom",
         fontsize=FONT_SIZES["legend"], clip_on=False,
     )
@@ -349,18 +351,23 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
     rightmost_x = len(config_order) - 1
     arrow_x = rightmost_x + 0.42
 
+    ax.plot(
+        [rightmost_x, arrow_x], [rightmost_mean, rightmost_mean],
+        color="black", linewidth=0.7, linestyle=(0, (3, 2)),
+        zorder=5,
+    )
     ax.annotate(
         "",
         xy=(arrow_x, rightmost_mean),
         xytext=(arrow_x, 1.0),
-        arrowprops=dict(arrowstyle="<->", color=ARROW_COLOR, lw=1.0,
+        arrowprops=dict(arrowstyle="<->", color="black", lw=1.0,
                         shrinkA=1.5, shrinkB=1.5),
         zorder=6,
     )
     ax.text(
         arrow_x + 0.05,
         (1.0 + rightmost_mean) / 2,
-        f"{rightmost_mean:.2f}",
+        rf"{rightmost_mean:.2f}$\times$",
         ha="left", va="center",
         color=ARROW_COLOR,
         fontsize=FONT_SIZES["legend"] - 1,
@@ -368,7 +375,7 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
     )
 
     current_xlim = ax.get_xlim()
-    ax.set_xlim(current_xlim[0], max(current_xlim[1], arrow_x + 0.55))
+    ax.set_xlim(current_xlim[0], max(current_xlim[1], arrow_x + 0.7))
 
 
 def figure_width(config_order):
@@ -411,8 +418,18 @@ def plot_cf(df, config_order):
     maybe_show()
 
 
+def hide_zero_gridline(ax):
+    for line in ax.get_ygridlines():
+        ydata = line.get_ydata()
+        if len(ydata) and abs(float(ydata[0])) < 1e-12:
+            line.set_visible(False)
+
+
 def plot_speed(df, config_order):
     df["Time"] = pd.to_numeric(df["Time"], errors="coerce")
+    is_decompression = metric.startswith("decompression")
+    if is_decompression:
+        df["Time"] = df["Time"] / 1000.0
     df_time = df[["configuration", "Time"]].copy()
 
     fig, ax = plt.subplots(figsize=(figure_width(config_order), 4.8))
@@ -423,12 +440,22 @@ def plot_speed(df, config_order):
     ax.set_xlabel("Configuration", labelpad=14)
     if metric.startswith("table_construction"):
         ax.set_ylabel("Table construction speed [MB/s]")
-    elif metric.startswith("compression"):
-        ax.set_ylabel("Compression speed [MB/s]")
+    elif is_decompression:
+        ax.set_ylabel("Decompression speed [GB/s]")
     else:
-        ax.set_ylabel("Decompression speed [MB/s]")
+        ax.set_ylabel("Compression speed [MB/s]")
+
+    log_scale = metric == "compression_speed_block_compressors"
+    if log_scale:
+        ax.set_yscale("log")
+    else:
+        ax.set_ylim(bottom=0)
+
     apply_configuration_axis(ax, config_order)
     configure_grid(ax)
+    if not log_scale:
+        fig.canvas.draw()
+        hide_zero_gridline(ax)
     if should_show_marker_legend():
         add_marker_legend(ax)
     output_path = "./plots/" + metric + ".pdf"
@@ -437,27 +464,106 @@ def plot_speed(df, config_order):
     maybe_show()
 
 
+def compute_category_groups(config_order):
+    groups = []
+    current_cat = None
+    start_idx = None
+    for i, cfg in enumerate(config_order):
+        if cfg in ("FSST", "OptFSST"):
+            cat = "FSST"
+        elif cfg in ("FSST12", "OptFSST12"):
+            cat = "FSST12"
+        else:
+            cat = "Block-based"
+        if cat != current_cat:
+            if current_cat is not None:
+                groups.append((current_cat, start_idx, i - 1))
+            current_cat = cat
+            start_idx = i
+    if current_cat is not None:
+        groups.append((current_cat, start_idx, len(config_order) - 1))
+    return groups
+
+
 def plot_summary_table(df, config_order, value_column):
     stats = df.groupby("configuration")[value_column].agg(["min", "mean", "median", "max"]).reindex(config_order)
     columns = ["min", "mean", "median", "max"]
-    cell_text = [[f"{stats.loc[cfg, col]:.2f}" for col in columns] for cfg in config_order]
+    is_cf = value_column == "CF"
 
-    fig_height = 0.45 * (len(config_order) + 1) + 0.4
-    fig, ax = plt.subplots(figsize=(6.0, fig_height))
+    def fmt(v):
+        if is_cf:
+            return rf"{v:.2f}$\times$"
+        return f"{v:.2f}"
+
+    groups = compute_category_groups(config_order)
+
+    cat_w = 0.55
+    label_w = 1.45
+    data_w = 1.0
+
+    col_xs = [0.0, cat_w, cat_w + label_w]
+    for _ in range(len(columns)):
+        col_xs.append(col_xs[-1] + data_w)
+    total_width = col_xs[-1]
+
+    header_h = 0.75
+    row_h = 0.75
+    total_height = header_h + row_h * len(config_order)
+
+    fig_height = 0.42 * (len(config_order) + 1) + 0.4
+    fig_width = total_width * 1.0
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    ax.set_xlim(0, total_width)
+    ax.set_ylim(0, total_height)
+    ax.invert_yaxis()
     ax.axis("off")
 
-    table = ax.table(
-        cellText=cell_text,
-        rowLabels=config_order,
-        colLabels=columns,
-        cellLoc="center",
-        rowLoc="center",
-        loc="center",
-        edges="horizontal",
-    )
-    table.auto_set_font_size(False)
-    table.set_fontsize(FONT_SIZES["base"])
-    table.scale(1.0, 1.4)
+    for j, col_name in enumerate(columns):
+        x_center = col_xs[2 + j] + data_w / 2
+        ax.text(x_center, header_h / 2, col_name, ha="center", va="center",
+                fontsize=FONT_SIZES["base"])
+
+    for i, label in enumerate(config_order):
+        y = header_h + i * row_h + row_h / 2
+        ax.text(col_xs[1] + label_w / 2, y, label, ha="center", va="center",
+                fontsize=FONT_SIZES["base"])
+
+    for i, cfg in enumerate(config_order):
+        y = header_h + i * row_h + row_h / 2
+        for j, col in enumerate(columns):
+            x_center = col_xs[2 + j] + data_w / 2
+            ax.text(x_center, y, fmt(stats.loc[cfg, col]), ha="center", va="center",
+                    fontsize=FONT_SIZES["base"])
+
+    for cat_name, start, end in groups:
+        y_top = header_h + start * row_h
+        y_bot = header_h + (end + 1) * row_h
+        y_center = (y_top + y_bot) / 2
+        x_center = col_xs[0] + cat_w / 2
+        ax.text(x_center, y_center, cat_name, ha="center", va="center",
+                rotation=90, fontsize=FONT_SIZES["base"])
+
+    line_color = "black"
+    thin_w = 0.6
+    thick_w = 1.6
+
+    ax.plot([col_xs[0], total_width], [0, 0], color=line_color, linewidth=thick_w)
+    ax.plot([col_xs[0], total_width], [total_height, total_height], color=line_color, linewidth=thick_w)
+    ax.plot([col_xs[1], total_width], [header_h, header_h], color=line_color, linewidth=thin_w)
+
+    group_boundary_rows = {start for _, start, _ in groups[1:]}
+    for i in range(1, len(config_order)):
+        if i in group_boundary_rows:
+            continue
+        y = header_h + i * row_h
+        ax.plot([col_xs[1], total_width], [y, y], color=line_color,
+                linewidth=thin_w * 0.55, alpha=0.5)
+
+    for _, start, _ in groups[1:]:
+        y = header_h + start * row_h
+        ax.plot([col_xs[0], total_width], [y, y], color=line_color, linewidth=thick_w)
+
+    ax.plot([col_xs[1], col_xs[1]], [0, total_height], color=line_color, linewidth=thin_w)
 
     output_path = "./plots/" + metric + ".pdf"
     fig.tight_layout(pad=0.3)

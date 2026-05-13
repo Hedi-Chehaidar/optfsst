@@ -350,12 +350,75 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
     }
 }
 
+static void run_block_speed_benchmark(const std::vector<SpeedVariant>& variants,
+                                      const std::vector<fs::path>& files,
+                                      const fs::path& compression_csv,
+                                      const fs::path& decompression_csv,
+                                      const fs::path& tmp_root) {
+    std::ofstream compression_out(compression_csv);
+    compression_out << "configuration,Time,file\n";
+
+    std::ofstream decompression_out(decompression_csv);
+    decompression_out << "configuration,Time,file\n";
+
+    for (const auto& variant : variants) {
+        for (const auto& file : files) {
+            const fs::path compressed = tmp_root / (variant.label + "_block_compressed.bin");
+            const fs::path decompressed = tmp_root / (variant.label + "_block_decompressed.bin");
+
+            double compression_time = 0.0;
+            std::ostringstream compress_cmd;
+            compress_cmd << shell_quote(variant.binary);
+            if (!variant.args.empty()) compress_cmd << " " << variant.args;
+            compress_cmd << " --time-compression "
+                         << shell_quote(file.string()) << " "
+                         << shell_quote(compressed.string());
+
+            for (int rep = 0; rep < 5; ++rep) {
+                int exit_code = 0;
+                const std::string stdout_text = run_and_capture_stdout(compress_cmd.str(), exit_code);
+                compression_time += parse_timing_output(compress_cmd.str(), exit_code, stdout_text);
+            }
+            compression_time /= 5.0;
+
+            compression_out << variant.label << ","
+                            << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / compression_time) << ","
+                            << file.string() << "\n";
+
+            double decompression_time = 0.0;
+            std::ostringstream decompress_cmd;
+            decompress_cmd << shell_quote(variant.binary)
+                           << " -d "
+                           << shell_quote(compressed.string()) << " "
+                           << shell_quote(decompressed.string());
+
+            for (int rep = 0; rep < 5; ++rep) {
+                int exit_code = 0;
+                const std::string stdout_text = run_and_capture_stdout(decompress_cmd.str(), exit_code);
+                decompression_time += parse_timing_output(decompress_cmd.str(), exit_code, stdout_text);
+            }
+            decompression_time /= 5.0;
+
+            decompression_out << variant.label << ","
+                              << (static_cast<double>(get_checked_file_size(file)) / 1000000.0 / decompression_time) << ","
+                              << file.string() << "\n";
+
+            if (!files_equal(file, decompressed)) {
+                throw std::runtime_error("decompression correctness failed for " + variant.label + " on " + file.string());
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv) {
     bool only_cf = false;
+    bool only_block_speed = false;
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--only-cf") {
             only_cf = true;
+        } else if (arg == "--only-block-speed") {
+            only_block_speed = true;
         } else {
             std::cerr << "unknown argument: " << arg << "\n";
             return 1;
@@ -407,7 +470,7 @@ int main(int argc, char** argv) {
         return configs;
     };
 
-    if (!only_cf) {
+    if (!only_cf && !only_block_speed) {
         run_improvement_benchmark(
             "optfsst",
             fsst_scalar,
@@ -439,7 +502,7 @@ int main(int argc, char** argv) {
         {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
     };
 
-    if (!only_cf) {
+    if (!only_cf && !only_block_speed) {
         run_speed_benchmark(
             speed_variants,
             decompression_variants,
@@ -499,15 +562,55 @@ int main(int argc, char** argv) {
         std::cerr << "warning: 'zstd' not found on PATH, skipping ZSTD in cf_block_compressors benchmark\n";
     }
 
-    if (has_snappy || has_lz4 || has_zstd) {
-        run_cf_comparison_benchmark(
-            "cf_block_compressors",
-            cf_compressors,
+    if (!only_block_speed) {
+        if (has_snappy || has_lz4 || has_zstd) {
+            run_cf_comparison_benchmark(
+                "cf_block_compressors",
+                cf_compressors,
+                files,
+                csv_dir / "cf_block_compressors.csv",
+                tmp_dir);
+        } else {
+            std::cerr << "warning: none of snappy/lz4/zstd available, skipping cf_block_compressors benchmark entirely\n";
+        }
+    }
+
+    if (!only_cf) {
+        std::vector<SpeedVariant> block_speed_variants = {
+            {"FSST", fsst_scalar.string(), ""},
+            {"OptFSST", fsst_scalar.string(), "--dp-train --triples --prune --dp-encode"},
+            {"FSST12", fsst12.string(), ""},
+            {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
+        };
+
+        if (has_snappy) {
+            block_speed_variants.push_back({"Snappy", snappy_bench.string(), ""});
+        } else {
+            std::cerr << "warning: './snappy_bench' not found, skipping Snappy in *_speed_block_compressors benchmark\n";
+        }
+
+        const fs::path lz4_bench = "./lz4_bench";
+        const bool has_lz4_bench = fs::exists(lz4_bench);
+        if (has_lz4_bench) {
+            block_speed_variants.push_back({"LZ4", lz4_bench.string(), ""});
+        } else {
+            std::cerr << "warning: './lz4_bench' not found, skipping LZ4 in *_speed_block_compressors benchmark\n";
+        }
+
+        const fs::path zstd_bench = "./zstd_bench";
+        const bool has_zstd_bench = fs::exists(zstd_bench);
+        if (has_zstd_bench) {
+            block_speed_variants.push_back({"ZSTD", zstd_bench.string(), ""});
+        } else {
+            std::cerr << "warning: './zstd_bench' not found, skipping ZSTD in *_speed_block_compressors benchmark\n";
+        }
+
+        run_block_speed_benchmark(
+            block_speed_variants,
             files,
-            csv_dir / "cf_block_compressors.csv",
+            csv_dir / "compression_speed_block_compressors.csv",
+            csv_dir / "decompression_speed_block_compressors.csv",
             tmp_dir);
-    } else {
-        std::cerr << "warning: none of snappy/lz4/zstd available, skipping cf_block_compressors benchmark entirely\n";
     }
 
     fs::remove_all(tmp_dir);

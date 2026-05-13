@@ -43,12 +43,22 @@ cmake --build "$BUILD_DIR_12" -j --target binary12
 step "Building benchmark runner"
 g++ -std=c++20 -O3 "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"
 
-step "Building Snappy benchmark helper (optional)"
-rm -f "$BENCH_DIR/snappy_bench"
+step "Building block-compressor benchmark helpers (optional)"
+rm -f "$BENCH_DIR/snappy_bench" "$BENCH_DIR/lz4_bench" "$BENCH_DIR/zstd_bench"
 if g++ -std=c++20 -O3 "$BENCH_DIR/snappy_bench.cpp" -o "$BENCH_DIR/snappy_bench" -lsnappy 2>/dev/null; then
     echo "built snappy_bench"
 else
-    echo "warning: libsnappy not available (install libsnappy-dev), skipping Snappy in cf_block_compressors benchmark" >&2
+    echo "warning: libsnappy not available (install libsnappy-dev), skipping Snappy in block-compressor benchmarks" >&2
+fi
+if g++ -std=c++20 -O3 "$BENCH_DIR/lz4_bench.cpp" -o "$BENCH_DIR/lz4_bench" -llz4 2>/dev/null; then
+    echo "built lz4_bench"
+else
+    echo "warning: liblz4 not available (install liblz4-dev), skipping LZ4 in *_speed_block_compressors benchmark" >&2
+fi
+if g++ -std=c++20 -O3 "$BENCH_DIR/zstd_bench.cpp" -o "$BENCH_DIR/zstd_bench" -lzstd 2>/dev/null; then
+    echo "built zstd_bench"
+else
+    echo "warning: libzstd not available (install libzstd-dev), skipping ZSTD in *_speed_block_compressors benchmark" >&2
 fi
 
 step "Running paper benchmarks"
@@ -76,5 +86,16 @@ step "Generating plots"
         python3 plot_results.py cf_block_compressors_table
     else
         echo "warning: csv/cf_block_compressors.csv not found, skipping cf_block_compressors plot" >&2
+    fi
+    if [[ -f "./csv/compression_speed_block_compressors.csv" ]]; then
+        python3 plot_results.py compression_speed_block_compressors
+        python3 plot_results.py compression_speed_block_compressors_table
+    else
+        echo "warning: csv/compression_speed_block_compressors.csv not found, skipping plot" >&2
+    fi
+    if [[ -f "./csv/decompression_speed_block_compressors.csv" ]]; then
+        python3 plot_results.py decompression_speed_block_compressors
+    else
+        echo "warning: csv/decompression_speed_block_compressors.csv not found, skipping plot" >&2
     fi
 )

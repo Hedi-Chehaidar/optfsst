@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <snappy.h>
+#include <zstd.h>
 
 static std::vector<char> read_file(const std::string& path) {
     std::ifstream in(path, std::ios::binary | std::ios::ate);
@@ -41,13 +41,21 @@ static void write_file(const std::string& path, const char* data, std::size_t si
 
 static int compress_file(const std::string& in_path, const std::string& out_path, bool print_time) {
     const auto input = read_file(in_path);
-    std::string compressed;
+    const std::size_t bound = ZSTD_compressBound(input.size());
+    std::vector<char> buf(bound);
 
     const auto t0 = std::chrono::steady_clock::now();
-    snappy::Compress(input.data(), input.size(), &compressed);
+    const std::size_t compressed_size = ZSTD_compress(
+        buf.data(), buf.size(),
+        input.data(), input.size(),
+        ZSTD_CLEVEL_DEFAULT);
     const auto t1 = std::chrono::steady_clock::now();
+    if (ZSTD_isError(compressed_size)) {
+        std::cerr << "ZSTD_compress failed: " << ZSTD_getErrorName(compressed_size) << "\n";
+        return 1;
+    }
 
-    write_file(out_path, compressed.data(), compressed.size());
+    write_file(out_path, buf.data(), compressed_size);
 
     if (print_time) {
         const double seconds = std::chrono::duration<double>(t1 - t0).count();
@@ -58,22 +66,26 @@ static int compress_file(const std::string& in_path, const std::string& out_path
 
 static int decompress_file(const std::string& in_path, const std::string& out_path) {
     const auto input = read_file(in_path);
-    std::size_t orig = 0;
-    if (!snappy::GetUncompressedLength(input.data(), input.size(), &orig)) {
-        std::cerr << "snappy: cannot read uncompressed length\n";
+    const unsigned long long orig = ZSTD_getFrameContentSize(input.data(), input.size());
+    if (orig == ZSTD_CONTENTSIZE_ERROR || orig == ZSTD_CONTENTSIZE_UNKNOWN) {
+        std::cerr << "zstd: cannot determine decompressed size\n";
         return 1;
     }
-    std::vector<char> output(orig);
+    std::vector<char> output(static_cast<std::size_t>(orig));
 
     const auto t0 = std::chrono::steady_clock::now();
-    const bool ok = snappy::RawUncompress(input.data(), input.size(), output.data());
+    const std::size_t decompressed = ZSTD_decompress(
+        output.data(), output.size(),
+        input.data(), input.size());
     const auto t1 = std::chrono::steady_clock::now();
-    if (!ok) {
-        std::cerr << "snappy::RawUncompress failed\n";
+    if (ZSTD_isError(decompressed) || decompressed != orig) {
+        std::cerr << "ZSTD_decompress failed: "
+                  << (ZSTD_isError(decompressed) ? ZSTD_getErrorName(decompressed) : "size mismatch")
+                  << "\n";
         return 1;
     }
 
-    write_file(out_path, output.data(), output.size());
+    write_file(out_path, output.data(), decompressed);
     const double seconds = std::chrono::duration<double>(t1 - t0).count();
     std::cout << seconds << "\n";
     return 0;
@@ -81,26 +93,26 @@ static int decompress_file(const std::string& in_path, const std::string& out_pa
 
 int main(int argc, char** argv) {
     if (argc < 3 || argc > 4) {
-        std::cerr << "usage: snappy_bench [--time-compression|-d] <input> <output>\n";
+        std::cerr << "usage: zstd_bench [--time-compression|-d] <input> <output>\n";
         return 1;
     }
     const std::string first = argv[1];
     if (first == "--time-compression") {
         if (argc != 4) {
-            std::cerr << "usage: snappy_bench --time-compression <input> <output>\n";
+            std::cerr << "usage: zstd_bench --time-compression <input> <output>\n";
             return 1;
         }
         return compress_file(argv[2], argv[3], true);
     }
     if (first == "-d") {
         if (argc != 4) {
-            std::cerr << "usage: snappy_bench -d <input> <output>\n";
+            std::cerr << "usage: zstd_bench -d <input> <output>\n";
             return 1;
         }
         return decompress_file(argv[2], argv[3]);
     }
     if (argc != 3) {
-        std::cerr << "usage: snappy_bench <input> <output>\n";
+        std::cerr << "usage: zstd_bench <input> <output>\n";
         return 1;
     }
     return compress_file(argv[1], argv[2], false);
