@@ -331,8 +331,6 @@ struct SymbolTable {
       }
    }
 
-   void buildDP_avx512(const u8* data, size_t n, bool finalLayout);
-
    // Build DP parse for a byte sequence (n bytes).
    // If finalLayout==false: escape detection is (code < FSST_CODE_BASE).
    // If finalLayout==true : escape detection is (code == 511)  (as produced by finalize()).

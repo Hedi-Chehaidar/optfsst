@@ -43,6 +43,14 @@ cmake --build "$BUILD_DIR_12" -j --target binary12
 step "Building benchmark runner"
 g++ -std=c++20 -O3 "$BENCH_DIR/runner.cpp" -o "$BENCH_DIR/runner"
 
+step "Building Snappy benchmark helper (optional)"
+rm -f "$BENCH_DIR/snappy_bench"
+if g++ -std=c++20 -O3 "$BENCH_DIR/snappy_bench.cpp" -o "$BENCH_DIR/snappy_bench" -lsnappy 2>/dev/null; then
+    echo "built snappy_bench"
+else
+    echo "warning: libsnappy not available (install libsnappy-dev), skipping Snappy in cf_block_compressors benchmark" >&2
+fi
+
 step "Running paper benchmarks"
 (
     cd "$BENCH_DIR"

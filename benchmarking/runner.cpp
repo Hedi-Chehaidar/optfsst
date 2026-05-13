@@ -280,7 +280,7 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
             const fs::path compressed = tmp_root / (variant.label + "_compressed.bin");
             const fs::path decompressed = tmp_root / (variant.label + "_decompressed.bin");
 
-            if (variant.label != "FSST (SIMD)") {
+            if (variant.label != "FSST (AVX512)") {
                 double table_construction_time = 0.0;
                 std::ostringstream table_construction_cmd;
                 table_construction_cmd << shell_quote(variant.binary);
@@ -350,8 +350,19 @@ static void run_speed_benchmark(const std::vector<SpeedVariant>& variants,
     }
 }
 
-int main() {
-    const fs::path corpus_root = "../data/refined"; //"../fsst-paper/dbtext"; 
+int main(int argc, char** argv) {
+    bool only_cf = false;
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "--only-cf") {
+            only_cf = true;
+        } else {
+            std::cerr << "unknown argument: " << arg << "\n";
+            return 1;
+        }
+    }
+
+    const fs::path corpus_root = "../data/refined"; //"../fsst-paper/dbtext";
     const fs::path csv_dir = "./csv";
     const fs::path tmp_dir = "./tmp";
 
@@ -396,25 +407,27 @@ int main() {
         return configs;
     };
 
-    run_improvement_benchmark(
-        "optfsst",
-        fsst_scalar,
-        prepend_baseline(improvement_configs_8bit, "FSST"),
-        files,
-        csv_dir / "improvement.csv",
-        tmp_dir);
+    if (!only_cf) {
+        run_improvement_benchmark(
+            "optfsst",
+            fsst_scalar,
+            prepend_baseline(improvement_configs_8bit, "FSST"),
+            files,
+            csv_dir / "improvement.csv",
+            tmp_dir);
 
-    run_improvement_benchmark(
-        "optfsst12",
-        fsst12,
-        prepend_baseline(improvement_configs_12bit, "FSST12"),
-        files,
-        csv_dir / "improvement12.csv",
-        tmp_dir);
+        run_improvement_benchmark(
+            "optfsst12",
+            fsst12,
+            prepend_baseline(improvement_configs_12bit, "FSST12"),
+            files,
+            csv_dir / "improvement12.csv",
+            tmp_dir);
+    }
 
     const std::vector<SpeedVariant> speed_variants = {
         {"FSST", fsst_scalar.string(), ""},
-        {"FSST (SIMD)", fsst_simd.string(), ""},
+        {"FSST (AVX512)", fsst_simd.string(), ""},
         {"OptFSST", fsst_scalar.string(), "--dp-train --triples --prune --dp-encode"},
         {"FSST12", fsst12.string(), ""},
         {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
@@ -426,14 +439,16 @@ int main() {
         {"OptFSST12", fsst12.string(), "--dp-train --triples --prune --dp-encode"},
     };
 
-    run_speed_benchmark(
-        speed_variants,
-        decompression_variants,
-        files,
-        csv_dir / "table_construction_speed_paper.csv",
-        csv_dir / "compression_speed_paper.csv",
-        csv_dir / "decompression_speed_paper.csv",
-        tmp_dir);
+    if (!only_cf) {
+        run_speed_benchmark(
+            speed_variants,
+            decompression_variants,
+            files,
+            csv_dir / "table_construction_speed_paper.csv",
+            csv_dir / "compression_speed_paper.csv",
+            csv_dir / "decompression_speed_paper.csv",
+            tmp_dir);
+    }
 
     auto fsst_cf_cmd = [](fs::path binary, std::string args) {
         return [binary = std::move(binary), args = std::move(args)](
@@ -454,6 +469,18 @@ int main() {
         {"OptFSST12", fsst_cf_cmd(fsst12, optfsst_args)},
     };
 
+    const fs::path snappy_bench = "./snappy_bench";
+    const bool has_snappy = fs::exists(snappy_bench);
+    if (has_snappy) {
+        cf_compressors.push_back({"Snappy", [snappy_bench](const fs::path& input, const fs::path& output) {
+            return shell_quote(snappy_bench.string()) + " "
+                   + shell_quote(input.string()) + " "
+                   + shell_quote(output.string());
+        }});
+    } else {
+        std::cerr << "warning: './snappy_bench' not found, skipping Snappy in cf_block_compressors benchmark\n";
+    }
+
     const bool has_lz4 = tool_on_path("lz4");
     if (has_lz4) {
         cf_compressors.push_back({"LZ4", [](const fs::path& input, const fs::path& output) {
@@ -472,7 +499,7 @@ int main() {
         std::cerr << "warning: 'zstd' not found on PATH, skipping ZSTD in cf_block_compressors benchmark\n";
     }
 
-    if (has_lz4 || has_zstd) {
+    if (has_snappy || has_lz4 || has_zstd) {
         run_cf_comparison_benchmark(
             "cf_block_compressors",
             cf_compressors,
@@ -480,7 +507,7 @@ int main() {
             csv_dir / "cf_block_compressors.csv",
             tmp_dir);
     } else {
-        std::cerr << "warning: neither lz4 nor zstd available, skipping cf_block_compressors benchmark entirely\n";
+        std::cerr << "warning: none of snappy/lz4/zstd available, skipping cf_block_compressors benchmark entirely\n";
     }
 
     fs::remove_all(tmp_dir);

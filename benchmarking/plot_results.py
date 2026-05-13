@@ -96,9 +96,8 @@ matplotlib.rcParams.update(
         "axes.titlepad": 6.0,
         "axes.labelpad": 4.0,
         "axes.linewidth": 0.75,
-        "axes.grid": True,
-        "axes.grid.axis": "y",
-        "axes.grid.which": "both",
+        "axes.grid": False,
+        "axes.axisbelow": True,
         "grid.color": "#b8b8b8",
         "grid.linewidth": 0.7,
         "grid.alpha": 1.0,
@@ -136,6 +135,72 @@ matplotlib.rcParams.update(
 )
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+
+GRID_MAJOR_COLOR = "#a8a8a8"
+GRID_MINOR_COLOR = "#dcdcdc"
+SEPARATOR_COLOR = "#4a90c8"
+SHADING_COLOR = "#f3cf9e"
+VIOLIN_ZORDER = 2
+MEDIAN_ZORDER = 4
+MEAN_ZORDER = 5
+ARROW_COLOR = "#c0392b"
+
+SPEED_SEPARATOR_LABELS = ("FSST + dp-encode", "FSST12 + dp-encode", "FSST12")
+DP_ENCODE_SEPARATORS = ("FSST + dp-encode", "FSST12 + dp-encode")
+
+
+def configure_grid(ax):
+    ax.minorticks_on()
+    ax.tick_params(axis="x", which="minor", bottom=False, top=False)
+    ax.grid(
+        axis="y",
+        which="major",
+        color=GRID_MAJOR_COLOR,
+        linewidth=0.7,
+        alpha=1.0,
+        zorder=0,
+    )
+    ax.grid(
+        axis="y",
+        which="minor",
+        color=GRID_MINOR_COLOR,
+        linewidth=0.5,
+        alpha=1.0,
+        zorder=0,
+    )
+    ax.set_axisbelow(True)
+
+
+def push_violins_below_grid(ax):
+    for collection in ax.collections:
+        collection.set_zorder(VIOLIN_ZORDER)
+
+
+def should_show_marker_legend():
+    if metric == "improvement12":
+        return False
+    if metric.startswith("decompression"):
+        return False
+    if metric.startswith("table_construction"):
+        return False
+    return True
+
+
+def add_marker_legend(ax):
+    handles = [
+        Line2D([0], [0], color="black", linewidth=1.4, label="Median"),
+        Line2D(
+            [0], [0],
+            marker="o",
+            color="#e74c3c",
+            markeredgecolor="black",
+            linestyle="None",
+            markersize=7,
+            label="Mean",
+        ),
+    ]
+    ax.legend(handles=handles, loc="best", frameon=False, fontsize=FONT_SIZES["legend"])
 
 
 def metric_title(metric_name):
@@ -183,18 +248,24 @@ def display_label(configuration):
     return PLOT_LABELS.get(DISPLAY_LABELS.get(configuration, configuration), PLOT_LABELS.get(configuration, configuration))
 
 
+def separator_labels_for_metric():
+    if metric.startswith("compression") or metric.startswith("decompression") or metric.startswith("table_construction"):
+        return SPEED_SEPARATOR_LABELS
+    return DP_ENCODE_SEPARATORS
+
+
 def apply_configuration_axis(ax, config_order):
     x_positions = np.arange(len(config_order))
     ax.set_xticks(x_positions)
     ax.set_xticklabels([display_label(label) for label in config_order], rotation=0, ha="center")
 
-    for separator_label in ("FSST + dp-encode", "FSST12 + dp-encode"):
+    for separator_label in separator_labels_for_metric():
         if separator_label in config_order:
             ax.axvline(
                 x=config_order.index(separator_label) - 0.5,
-                color="black",
-                linewidth=1.0,
-                alpha=0.8,
+                color=SEPARATOR_COLOR,
+                linewidth=1.2,
+                alpha=0.95,
                 zorder=1,
             )
 
@@ -241,6 +312,65 @@ def base_violinplot(ax, df, value_column, config_order):
     )
 
 
+def add_dp_encoding_annotations(ax, df, value_column, config_order):
+    sep_idx = None
+    for label in DP_ENCODE_SEPARATORS:
+        if label in config_order:
+            sep_idx = config_order.index(label)
+            break
+    if sep_idx is None:
+        return
+
+    left = -0.5
+    right = len(config_order) - 0.5
+    sep_x = sep_idx - 0.5
+
+    ax.axvspan(sep_x, right, color=SHADING_COLOR, alpha=0.22, zorder=0)
+
+    trans = ax.get_xaxis_transform()
+    left_center = (left + sep_x) / 2
+    right_center = (sep_x + right) / 2
+    ax.text(
+        left_center, 1.02, "W/O final DP encoding",
+        transform=trans, ha="center", va="bottom",
+        fontsize=FONT_SIZES["legend"], clip_on=False,
+    )
+    ax.text(
+        right_center, 1.02, "W final DP encoding",
+        transform=trans, ha="center", va="bottom",
+        fontsize=FONT_SIZES["legend"], clip_on=False,
+    )
+
+    rightmost_label = config_order[-1]
+    rightmost_values = df.loc[df["configuration"] == rightmost_label, value_column]
+    if rightmost_values.empty:
+        return
+    rightmost_mean = float(rightmost_values.mean())
+    rightmost_x = len(config_order) - 1
+    arrow_x = rightmost_x + 0.42
+
+    ax.annotate(
+        "",
+        xy=(arrow_x, rightmost_mean),
+        xytext=(arrow_x, 1.0),
+        arrowprops=dict(arrowstyle="<->", color=ARROW_COLOR, lw=1.0,
+                        shrinkA=1.5, shrinkB=1.5),
+        zorder=6,
+    )
+    ax.text(
+        arrow_x + 0.05,
+        (1.0 + rightmost_mean) / 2,
+        f"{rightmost_mean:.2f}",
+        ha="left", va="center",
+        color=ARROW_COLOR,
+        fontsize=FONT_SIZES["legend"] - 1,
+        zorder=6,
+    )
+
+    current_xlim = ax.get_xlim()
+    ax.set_xlim(current_xlim[0], max(current_xlim[1], arrow_x + 0.55))
+
+
 def figure_width(config_order):
     if metric.startswith("decompression"):
         return 10.5
@@ -252,23 +382,29 @@ def plot_cf(df, config_order):
     df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
     df_cf = df[["configuration", "CF"]].copy()
 
-    fig, ax = plt.subplots(figsize=(figure_width(config_order), 4.8))
+    fig_height = 5.2 if not is_absolute_cf_metric() else 4.8
+    fig, ax = plt.subplots(figsize=(figure_width(config_order), fig_height))
     absolute = is_absolute_cf_metric()
     if not absolute:
-        ax.axhline(y=1, color="red", linestyle="--", linewidth=1, alpha=0.8)
+        ax.axhline(y=1, color="red", linestyle="--", linewidth=1, alpha=0.8, zorder=3)
     base_violinplot(ax, df_cf, "CF", config_order)
+    push_violins_below_grid(ax)
     add_median_lines(ax, df_cf, "CF", config_order)
     add_mean_markers(ax, df_cf, "CF", config_order, 0.0, "top")
     if absolute:
         ax.set_yscale("log")
         ax.set_ylim(bottom=1.0)
         ax.set_ylabel("Compression factor")
-        ax.set_title(metric_title(metric))
     else:
         ax.set_ylim(bottom=0.5)
         ax.set_ylabel(r"Compression factor improvement [$\times$]")
-    ax.set_xlabel("Configuration")
+    ax.set_xlabel("Configuration", labelpad=14)
     apply_configuration_axis(ax, config_order)
+    configure_grid(ax)
+    if not absolute:
+        add_dp_encoding_annotations(ax, df_cf, "CF", config_order)
+    if should_show_marker_legend():
+        add_marker_legend(ax)
     output_path = "./plots/" + metric + ".pdf"
     fig.tight_layout(pad=0.6)
     fig.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
@@ -281,10 +417,10 @@ def plot_speed(df, config_order):
 
     fig, ax = plt.subplots(figsize=(figure_width(config_order), 4.8))
     base_violinplot(ax, df_time, "Time", config_order)
+    push_violins_below_grid(ax)
     add_median_lines(ax, df_time, "Time", config_order)
     add_mean_markers(ax, df_time, "Time", config_order, 0.0, "bottom")
-    ax.set_xlabel("Configuration")
-    ax.set_title(metric_title(metric))
+    ax.set_xlabel("Configuration", labelpad=14)
     if metric.startswith("table_construction"):
         ax.set_ylabel("Table construction speed [MB/s]")
     elif metric.startswith("compression"):
@@ -292,6 +428,9 @@ def plot_speed(df, config_order):
     else:
         ax.set_ylabel("Decompression speed [MB/s]")
     apply_configuration_axis(ax, config_order)
+    configure_grid(ax)
+    if should_show_marker_legend():
+        add_marker_legend(ax)
     output_path = "./plots/" + metric + ".pdf"
     fig.tight_layout(pad=0.6)
     fig.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
