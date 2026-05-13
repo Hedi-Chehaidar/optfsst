@@ -63,4 +63,10 @@ step "Generating plots"
     python3 plot_results.py compression_speed_paper
     python3 plot_results.py decompression_speed_paper
     python3 plot_results.py table_construction_speed_paper
+    if [[ -f "./csv/cf_block_compressors.csv" ]]; then
+        python3 plot_results.py cf_block_compressors
+        python3 plot_results.py cf_block_compressors_table
+    else
+        echo "warning: csv/cf_block_compressors.csv not found, skipping cf_block_compressors plot" >&2
+    fi
 )

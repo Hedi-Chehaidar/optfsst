@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -30,6 +32,11 @@ struct SpeedVariant {
     std::string label;
     std::string binary;
     std::string args;
+};
+
+struct CFCompressor {
+    std::string label;
+    std::function<std::string(const fs::path&, const fs::path&)> make_cmd;
 };
 
 static std::string trim(std::string s) {
@@ -157,6 +164,11 @@ static void assert_exists(const fs::path& path) {
     }
 }
 
+static bool tool_on_path(const std::string& tool) {
+    const std::string cmd = "command -v " + shell_quote(tool) + " >/dev/null 2>&1";
+    return std::system(cmd.c_str()) == 0;
+}
+
 static double run_compress_cf(const fs::path& binary,
                               const std::string& args,
                               const fs::path& input,
@@ -169,6 +181,21 @@ static double run_compress_cf(const fs::path& binary,
     int exit_code = 0;
     const std::string stdout_text = run_and_capture_stdout(cmd.str(), exit_code);
     parse_timing_output(cmd.str(), exit_code, stdout_text);
+    return static_cast<double>(get_checked_file_size(input)) / static_cast<double>(get_checked_file_size(output));
+}
+
+static double run_cf_only(const CFCompressor& compressor,
+                          const fs::path& input,
+                          const fs::path& output) {
+    const std::string cmd = compressor.make_cmd(input, output);
+    int exit_code = 0;
+    const std::string stdout_text = run_and_capture_stdout(cmd, exit_code);
+    if (exit_code != 0) {
+        std::cerr << "Command failed with exit code " << exit_code << "\n";
+        std::cerr << "Command: " << cmd << "\n";
+        std::cerr << "Captured stdout: " << (stdout_text.empty() ? "<empty>" : stdout_text) << "\n";
+        throw std::runtime_error("cf benchmark command failed");
+    }
     return static_cast<double>(get_checked_file_size(input)) / static_cast<double>(get_checked_file_size(output));
 }
 
@@ -211,6 +238,24 @@ static void run_improvement_benchmark(const std::string& title,
     std::cout << title << " best configurations:\n";
     for (const auto& [label, count] : best_config_counts) {
         std::cout << "  " << label << ": " << count << "\n";
+    }
+}
+
+static void run_cf_comparison_benchmark(const std::string& title,
+                                        const std::vector<CFCompressor>& compressors,
+                                        const std::vector<fs::path>& files,
+                                        const fs::path& csv_path,
+                                        const fs::path& tmp_root) {
+    std::ofstream out(csv_path);
+    out << "configuration,CF,file\n";
+
+    for (const auto& file : files) {
+        for (size_t idx = 0; idx < compressors.size(); ++idx) {
+            const auto& compressor = compressors[idx];
+            const fs::path tmp_out = tmp_root / (title + "_" + std::to_string(idx) + ".bin");
+            const double cf_value = run_cf_only(compressor, file, tmp_out);
+            out << compressor.label << "," << cf_value << "," << file.string() << "\n";
+        }
     }
 }
 
@@ -328,21 +373,21 @@ int main() {
 
     const std::vector<Config> improvement_configs_8bit = {
         {"FSST + dp-train", "--dp-train"},
-        {"+ triples", "--dp-train --triples"},
+        {"+ triples (dp-train)", "--dp-train --triples"},
         {"+ prune", "--dp-train --triples --prune"},
         {"FSST + dp-encode", "--dp-encode"},
         {"+ dp-train", "--dp-train --dp-encode"},
-        {"+ triples", "--dp-train --triples --dp-encode"},
+        {"+ triples (dp-encode)", "--dp-train --triples --dp-encode"},
         {"+ prune = OptFSST", "--dp-train --triples --prune --dp-encode"},
     };
 
     const std::vector<Config> improvement_configs_12bit = {
         {"FSST12 + dp-train", "--dp-train"},
-        {"+ triples", "--dp-train --triples"},
+        {"+ triples (dp-train)", "--dp-train --triples"},
         {"+ prune", "--dp-train --triples --prune"},
         {"FSST12 + dp-encode", "--dp-encode"},
         {"+ dp-train", "--dp-train --dp-encode"},
-        {"+ triples", "--dp-train --triples --dp-encode"},
+        {"+ triples (dp-encode)", "--dp-train --triples --dp-encode"},
         {"+ prune = OptFSST12", "--dp-train --triples --prune --dp-encode"},
     };
 
@@ -389,6 +434,54 @@ int main() {
         csv_dir / "compression_speed_paper.csv",
         csv_dir / "decompression_speed_paper.csv",
         tmp_dir);
+
+    auto fsst_cf_cmd = [](fs::path binary, std::string args) {
+        return [binary = std::move(binary), args = std::move(args)](
+                   const fs::path& input, const fs::path& output) {
+            std::ostringstream cmd;
+            cmd << shell_quote(binary.string());
+            if (!args.empty()) cmd << " " << args;
+            cmd << " " << shell_quote(input.string()) << " " << shell_quote(output.string());
+            return cmd.str();
+        };
+    };
+
+    const std::string optfsst_args = "--dp-train --triples --prune --dp-encode";
+    std::vector<CFCompressor> cf_compressors = {
+        {"FSST", fsst_cf_cmd(fsst_scalar, "")},
+        {"OptFSST", fsst_cf_cmd(fsst_scalar, optfsst_args)},
+        {"FSST12", fsst_cf_cmd(fsst12, "")},
+        {"OptFSST12", fsst_cf_cmd(fsst12, optfsst_args)},
+    };
+
+    const bool has_lz4 = tool_on_path("lz4");
+    if (has_lz4) {
+        cf_compressors.push_back({"LZ4", [](const fs::path& input, const fs::path& output) {
+            return "lz4 -f -q " + shell_quote(input.string()) + " " + shell_quote(output.string());
+        }});
+    } else {
+        std::cerr << "warning: 'lz4' not found on PATH, skipping LZ4 in cf_block_compressors benchmark\n";
+    }
+
+    const bool has_zstd = tool_on_path("zstd");
+    if (has_zstd) {
+        cf_compressors.push_back({"ZSTD", [](const fs::path& input, const fs::path& output) {
+            return "zstd -f -q -o " + shell_quote(output.string()) + " " + shell_quote(input.string());
+        }});
+    } else {
+        std::cerr << "warning: 'zstd' not found on PATH, skipping ZSTD in cf_block_compressors benchmark\n";
+    }
+
+    if (has_lz4 || has_zstd) {
+        run_cf_comparison_benchmark(
+            "cf_block_compressors",
+            cf_compressors,
+            files,
+            csv_dir / "cf_block_compressors.csv",
+            tmp_dir);
+    } else {
+        std::cerr << "warning: neither lz4 nor zstd available, skipping cf_block_compressors benchmark entirely\n";
+    }
 
     fs::remove_all(tmp_dir);
 
