@@ -549,7 +549,7 @@ def plot_summary_table(df, config_order, value_column):
 
     ax.plot([col_xs[0], total_width], [0, 0], color=line_color, linewidth=thick_w)
     ax.plot([col_xs[0], total_width], [total_height, total_height], color=line_color, linewidth=thick_w)
-    ax.plot([col_xs[1], total_width], [header_h, header_h], color=line_color, linewidth=thin_w)
+    ax.plot([col_xs[0], total_width], [header_h, header_h], color=line_color, linewidth=thin_w)
 
     group_boundary_rows = {start for _, start, _ in groups[1:]}
     for i in range(1, len(config_order)):
