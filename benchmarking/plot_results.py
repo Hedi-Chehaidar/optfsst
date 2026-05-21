@@ -69,9 +69,9 @@ PLOT_LABELS = {
 
 FONT_SIZES = {
     "title": 14,
-    "axis_label": 14,
-    "tick": 11,
-    "legend": 11,
+    "axis_label": 22,
+    "tick": 18,
+    "legend": 18,
     "base": 12,
 }
 
@@ -382,7 +382,7 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
         rf"{rightmost_mean:.2f}$\times$",
         ha="left", va="center",
         color=ARROW_COLOR,
-        fontsize=FONT_SIZES["legend"] - 1,
+        fontsize=FONT_SIZES["legend"],
         zorder=6,
     )
 
@@ -390,19 +390,42 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
     ax.set_xlim(current_xlim[0], max(current_xlim[1], arrow_x + 0.7))
 
 
+PAPER_TRIO = (
+    "compression_speed_paper",
+    "decompression_speed_paper",
+    "table_construction_speed_paper",
+)
+PAPER_TRIO_WIDTH = 9.5
+PAPER_TRIO_HEIGHT = 7.5
+SPEED_PLOT_HEIGHT = 7.5
+CF_PLOT_HEIGHT = 8.0
+CF_ABSOLUTE_PLOT_HEIGHT = 7.5
+
+
 def figure_width(config_order):
+    if metric in PAPER_TRIO:
+        return PAPER_TRIO_WIDTH
     if metric.startswith("decompression"):
-        return 10.5
-    width_per_config = 10.5 / 7
-    return max(6.0, width_per_config * len(config_order))
+        return 13.0
+    width_per_config = 13.0 / 7
+    return max(7.5, width_per_config * len(config_order))
+
+
+def figure_height_speed():
+    if metric in PAPER_TRIO:
+        return PAPER_TRIO_HEIGHT
+    return SPEED_PLOT_HEIGHT
+
+
+def figure_height_cf():
+    return CF_ABSOLUTE_PLOT_HEIGHT if is_absolute_cf_metric() else CF_PLOT_HEIGHT
 
 
 def plot_cf(df, config_order):
     df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
     df_cf = df[["configuration", "CF"]].copy()
 
-    fig_height = 5.2 if not is_absolute_cf_metric() else 4.8
-    fig, ax = plt.subplots(figsize=(figure_width(config_order), fig_height))
+    fig, ax = plt.subplots(figsize=(figure_width(config_order), figure_height_cf()))
     absolute = is_absolute_cf_metric()
     if not absolute:
         ax.axhline(y=1, color="red", linestyle="--", linewidth=1, alpha=0.8, zorder=3)
@@ -445,7 +468,7 @@ def plot_speed(df, config_order):
         df["Time"] = df["Time"] / 1000.0
     df_time = df[["configuration", "Time"]].copy()
 
-    fig, ax = plt.subplots(figsize=(figure_width(config_order), 4.8))
+    fig, ax = plt.subplots(figsize=(figure_width(config_order), figure_height_speed()))
     base_violinplot(ax, df_time, "Time", config_order)
     push_violins_below_grid(ax)
     add_median_lines(ax, df_time, "Time", config_order)
