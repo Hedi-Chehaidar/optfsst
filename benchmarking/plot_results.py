@@ -67,12 +67,47 @@ PLOT_LABELS = {
     "+ prune = OptFSST12": "+ prune\n= OptFSST12",
 }
 
+# LaTeX-colored x-tick labels rendered via the pgf backend. The macros
+# (\gray, \blue, \orange, \green, \purple, \pblue) are defined in the pgf
+# preamble below. Newlines split labels onto two text lines so each line gets
+# its own \colorbox.
+COLORED_PLOT_LABELS_IMPROVEMENT = {
+    "FSST + dp-train":         r"\gray{FSST}" + "\n" + r"+ \blue{dp-train}",
+    "+ triples (dp-train)":    r"+ \orange{triples}",
+    "+ prune":                 r"+ \green{prune}",
+    "FSST + dp-encode":        r"\gray{FSST}" + "\n" + r"+ \pblue{dp-encode}",
+    "+ dp-train":              r"+ \blue{dp-train}",
+    "+ triples (dp-encode)":   r"+ \orange{triples}",
+    "+ prune = OptFSST":       r"+ \green{prune}" + "\n" + r"= \purple{OptFSST}",
+    "FSST12 + dp-train":       r"\gray{FSST12}" + "\n" + r"+ \blue{dp-train}",
+    "FSST12 + dp-encode":      r"\gray{FSST12}" + "\n" + r"+ \pblue{dp-encode}",
+    "+ prune = OptFSST12":     r"+ \green{prune}" + "\n" + r"= \purple{OptFSST12}",
+}
+
+COLORED_PLOT_LABELS_SPEED = {
+    "FSST":           r"\gray{FSST}",
+    "FSST (AVX512)":  r"\gray{FSST (AVX512)}",
+    "OptFSST":        r"\purple{OptFSST}",
+    "FSST12":         r"\gray{FSST12}",
+    "OptFSST12":      r"\purple{OptFSST12}",
+}
+
+# Metrics that get coloured x-tick labels. Block-compressor plots and table
+# variants stay monochrome per request.
+COLORED_METRICS = {
+    "improvement",
+    "improvement12",
+    "compression_speed_paper",
+    "decompression_speed_paper",
+    "table_construction_speed_paper",
+}
+
 FONT_SIZES = {
-    "title": 14,
-    "axis_label": 22,
-    "tick": 18,
-    "legend": 18,
-    "base": 12,
+    "title": 18,
+    "axis_label": 26,
+    "tick": 22,
+    "legend": 22,
+    "base": 16,
 }
 
 # important: set backend before importing pyplot
@@ -89,6 +124,26 @@ matplotlib.rcParams.update(
                 r"\usepackage{bm}",
                 r"\usepackage{graphicx}",
                 r"\usepackage{mathpazo}",
+                # Load xcolor explicitly so \definecolor is available; named
+                # colours from the dvipsnames palette are defined manually to
+                # avoid an "option clash" when matplotlib's pgf backend also
+                # loads xcolor (which it does without options).
+                r"\usepackage{xcolor}",
+                r"\definecolor{HLRoyalBlue}{cmyk}{1,0.5,0,0}",
+                r"\definecolor{HLBurntOrange}{cmyk}{0,0.51,1,0}",
+                r"\definecolor{HLForestGreen}{cmyk}{0.91,0,0.88,0.12}",
+                r"\definecolor{HLPurple}{cmyk}{0.45,0.86,0,0}",
+                r"\definecolor{HLBrickRed}{cmyk}{0,0.89,0.94,0.28}",
+                r"\definecolor{HLProcessBlue}{cmyk}{0.96,0,0,0}",
+                r"\setlength{\fboxsep}{1pt}",
+                r"\newcommand{\hlstrut}{\rule[-0.15ex]{0pt}{1.4ex}}",
+                r"\providecommand{\gray}[1]{}\renewcommand{\gray}[1]{\colorbox{gray!15}{\hlstrut #1}}",
+                r"\providecommand{\blue}[1]{}\renewcommand{\blue}[1]{\colorbox{HLRoyalBlue!15}{\hlstrut #1}}",
+                r"\providecommand{\orange}[1]{}\renewcommand{\orange}[1]{\colorbox{HLBurntOrange!18}{\hlstrut #1}}",
+                r"\providecommand{\green}[1]{}\renewcommand{\green}[1]{\colorbox{HLForestGreen!15}{\hlstrut #1}}",
+                r"\providecommand{\purple}[1]{}\renewcommand{\purple}[1]{\colorbox{HLPurple!15}{\hlstrut #1}}",
+                r"\providecommand{\red}[1]{}\renewcommand{\red}[1]{\colorbox{HLBrickRed!15}{\hlstrut #1}}",
+                r"\providecommand{\pblue}[1]{}\renewcommand{\pblue}[1]{\colorbox{HLProcessBlue!15}{\hlstrut #1}}",
             ]
         ),
         "axes.labelsize": FONT_SIZES["axis_label"],
@@ -245,6 +300,12 @@ def normalize_improvement_configurations(df):
 
 
 def display_label(configuration):
+    if metric in {"improvement", "improvement12"}:
+        if configuration in COLORED_PLOT_LABELS_IMPROVEMENT:
+            return COLORED_PLOT_LABELS_IMPROVEMENT[configuration]
+    elif metric in COLORED_METRICS:
+        if configuration in COLORED_PLOT_LABELS_SPEED:
+            return COLORED_PLOT_LABELS_SPEED[configuration]
     return PLOT_LABELS.get(DISPLAY_LABELS.get(configuration, configuration), PLOT_LABELS.get(configuration, configuration))
 
 
@@ -345,12 +406,12 @@ def add_dp_encoding_annotations(ax, df, value_column, config_order):
     left_center = (left + sep_x) / 2
     right_center = (sep_x + right) / 2
     ax.text(
-        left_center, 1.02, "w/o text DP-encoding",
+        left_center, 1.02, r"w/o text \pblue{DP-encoding}",
         transform=trans, ha="center", va="bottom",
         fontsize=FONT_SIZES["legend"], clip_on=False,
     )
     ax.text(
-        right_center, 1.02, "w/ text DP-encoding",
+        right_center, 1.02, r"w/ text \pblue{DP-encoding}",
         transform=trans, ha="center", va="bottom",
         fontsize=FONT_SIZES["legend"], clip_on=False,
     )
