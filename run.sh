@@ -67,6 +67,12 @@ step "Running paper benchmarks"
     ./runner
 )
 
+step "Running FSST+ vs OptFSST+ benchmark"
+bash "$BENCH_DIR/fsst_plus_bench/setup_and_run.sh"
+
+step "Running buildDP-variant compression-speed benchmark"
+bash "$BENCH_DIR/dp_bench/setup_and_run.sh"
+
 if ! python3 -c "import pandas, matplotlib, seaborn" >/dev/null 2>&1; then
     fail "python plotting dependencies are not installed"
 fi
