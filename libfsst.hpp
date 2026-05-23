@@ -364,39 +364,55 @@ struct SymbolTable {
             }
          };
          
+#ifdef BUILDDP_NAIVE
+         // Benchmark variant: no manual unrolling, no __builtin_expect hints.
+         // Kept behind a compile-time switch so the production build is unaffected.
+         if (node != -1) {
+            for (int off = 1; off < limit; ++off) {
+               node = trie[node].child[data[i + off]];
+               if (node == -1) break;
+               int code = trie[node].symbolCode;
+               u32 cost = 1u + dpCost[i + off + 1];
+               if (code != -1 && cost <= bestCost) {
+                  bestCost = cost;
+                  bestCode = code;
+               }
+            }
+         }
+#else
          if (likely(limit > 1 &&  node != -1)) {
                node = trieGetChild(node, data[i + 1]);
-               
+
                if (unlikely(node == -1)) goto builddp_done;
                considerTrieMatch(1);
                if (likely(limit > 2)) {
                      node = trieGetChild(node, data[i + 2]);
-                     
+
                      if ((node == -1)) goto builddp_done;
                      considerTrieMatch(2);
                      if (likely(limit > 3)) {
                         node = trieGetChild(node, data[i + 3]);
-                        
+
                         if ((node == -1)) goto builddp_done;
                         considerTrieMatch(3);
                         if (likely(limit > 4)) {
                            node = trieGetChild(node, data[i + 4]);
-                           
+
                            if ((node == -1)) goto builddp_done;
                            considerTrieMatch(4);
                            if (likely(limit > 5)) {
                               node = trieGetChild(node, data[i + 5]);
-                              
+
                               if ((node == -1)) goto builddp_done;
                               considerTrieMatch(5);
                               if (likely(limit > 6)) {
                                  node = trieGetChild(node, data[i + 6]);
-                                 
+
                                  if ((node == -1)) goto builddp_done;
                                  considerTrieMatch(6);
                                  if (likely(limit > 7)) {
                                     node = trieGetChild(node, data[i + 7]);
-                                    
+
                                     if ((node == -1)) goto builddp_done;
                                     considerTrieMatch(7);
                                  }
@@ -407,6 +423,7 @@ struct SymbolTable {
                   }
          }
 builddp_done:
+#endif
          dpCost[i] = bestCost;
          dpChoice[i] = bestCode;
 

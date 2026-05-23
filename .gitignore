@@ -9,6 +9,8 @@ build-trie/
 build12/
 build12-asan/
 build12-trie/
+build-dp-bench/
+build-fsst-plus-bench/
 data/raw/
 data/refined/
 data/refined_all/
