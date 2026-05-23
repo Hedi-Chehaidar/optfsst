@@ -45,7 +45,7 @@ def discover_corpora(root: Path) -> list[tuple[str, str, Path]]:
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
-        if path.suffix.lower() in {".pdf", ".png", ".pptx", ".mp4", ".db", ".csv"}:
+        if path.suffix.lower() in {".pdf", ".png", ".pptx", ".mp4", ".db", ".csv", ".fsst"}:
             continue
         rel = path.relative_to(root)
         parts = rel.parts

@@ -1,8 +1,12 @@
-// Compression-speed benchmark for OptFSST's buildDP trie traversal:
+// Compression-speed benchmark for OptFSST(12)'s buildDP trie traversal:
 // compares the production variant (manual 8-deep unrolling + __builtin_expect
 // hints) against a "naive" variant compiled with -DBUILDDP_NAIVE that uses a
 // plain for-loop and no hints in SymbolTable::buildDP. Both variants share the
 // rest of the OptFSST pipeline; only buildDP differs.
+//
+// Compile with -DFSST12 to switch to the 12-bit FSST codec; otherwise the
+// 8-bit codec is used. The variant_tag passed on the command line decides what
+// label lands in the CSV (e.g. "opt", "naive", "opt12", "naive12").
 //
 // One row per (variant, file) is written to stdout in CSV form:
 //   variant,file,n_lines,raw_bytes,compressed_bytes,
@@ -17,13 +21,18 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#ifdef FSST12
+#include "fsst12.h"
+#else
 #include "fsst.h"
+#endif
 
 namespace {
 
@@ -34,7 +43,8 @@ struct Corpus {
     std::vector<std::string> lines;
     std::vector<size_t> lengths;
     std::vector<const unsigned char *> ptrs;
-    size_t raw_bytes = 0;
+    size_t raw_bytes = 0;       // file size on disk (matches runner.cpp)
+    size_t line_bytes_sum = 0;  // Σ line.size(); used for buffer sizing
 };
 
 Corpus LoadCorpus(const std::string &path) {
@@ -53,8 +63,11 @@ Corpus LoadCorpus(const std::string &path) {
     for (const auto &s : c.lines) {
         c.lengths.push_back(s.size());
         c.ptrs.push_back(reinterpret_cast<const unsigned char *>(s.data()));
-        c.raw_bytes += s.size();
+        c.line_bytes_sum += s.size();
     }
+    std::error_code ec;
+    const auto fs_size = std::filesystem::file_size(path, ec);
+    c.raw_bytes = ec ? 0 : static_cast<size_t>(fs_size);
     return c;
 }
 
@@ -87,7 +100,9 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    std::vector<unsigned char> compress_buf(16 + 2 * corpus.raw_bytes);
+    // Buffer must fit the worst-case FSST output for the actual input bytes
+    // (no newlines); sizing off line_bytes_sum, not the file-size denominator.
+    std::vector<unsigned char> compress_buf(16 + 2 * corpus.line_bytes_sum);
     std::vector<size_t> out_lens(corpus.lines.size());
     std::vector<unsigned char *> out_ptrs(corpus.lines.size() + 1);
 
@@ -136,7 +151,8 @@ int main(int argc, char **argv) {
     const double create_mean = Mean(create_ms);
     const double compress_mean = Mean(compress_ms);
     const double total_mean = create_mean + compress_mean;
-    const double mb = static_cast<double>(corpus.raw_bytes) / (1024.0 * 1024.0);
+    // Decimal MB/s to match runner.cpp (bytes / 1e6 / seconds).
+    const double mb = static_cast<double>(corpus.raw_bytes) / 1000000.0;
     const double create_mbps = create_mean > 0 ? mb / (create_mean / 1000.0) : 0.0;
     const double compress_mbps = compress_mean > 0 ? mb / (compress_mean / 1000.0) : 0.0;
     const double total_mbps = total_mean > 0 ? mb / (total_mean / 1000.0) : 0.0;

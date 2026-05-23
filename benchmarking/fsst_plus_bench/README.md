@@ -24,17 +24,34 @@ build the symbol table) to route through OptFSST with all flags on.
 ## Inputs and outputs
 
 * Input corpus: `data/refined/` (one UTF-8 string per line per file). The
-  setup script will fail loudly if that directory is missing.
+  setup script will fail loudly if that directory is missing. Binary
+  `.fsst`-compressed files and other non-text extensions are skipped.
 * Output CSV: `benchmarking/csv/cf_speed_fsst_plus_vs_optfsst_plus.csv` with
   one row per `(variant, dataset, column)`. Columns:
   `variant, dataset, column, n_strings, raw_bytes, compressed_bytes,
    compression_factor, compress_ms_mean, decompress_ms_mean,
    compress_mb_per_s_mean, decompress_mb_per_s_mean`.
 
+## Metric conventions
+
+To stay apples-to-apples with `benchmarking/runner.cpp` (paper benches):
+
+* `raw_bytes` is the **file size on disk** (newlines included), not the sum
+  of stripped line lengths.
+* `compressed_bytes` is the **literal byte count** FSST+ produced in memory:
+  `(data_end − data_start) + serialized_symbol_table`. No hypothetical
+  bitpacking-savings subtraction. This matches `file_size(output)` for the
+  upstream FSST CLI and is the size FSST+ would write to disk verbatim.
+* `compress_mb_per_s_mean` and `decompress_mb_per_s_mean` use **decimal MB**
+  (`bytes / 1_000_000 / seconds`).
+
 The full pipeline (compression includes symbol-table training, cleaving,
 sizing, and writing; decompression replicates FSST+'s `DecompressBlock` path)
-is timed end-to-end. `--reps 5` is used by default and the arithmetic mean is reported.
-Every run is pinned to one CPU via `taskset -c 0`.
+is timed end-to-end. `--reps 5` is used by default and the arithmetic mean
+of per-rep times is reported. Every run is pinned to one CPU via
+`taskset -c 0` (this is the one intentional departure from `runner.cpp`,
+which does not pin — pinning reduces timing variance without changing the
+metric).
 
 ## Running
 

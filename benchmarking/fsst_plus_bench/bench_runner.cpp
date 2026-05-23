@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -137,8 +136,15 @@ struct CorpusBuffer {
     std::vector<std::string> strings;
     std::vector<size_t> lengths;
     std::vector<const unsigned char *> ptrs;
-    size_t raw_bytes = 0;
+    size_t raw_bytes = 0; // size of the file on disk (matches runner.cpp)
 };
+
+static size_t FileSizeOnDisk(const std::string &path) {
+    std::ifstream f(path, std::ios::binary | std::ios::ate);
+    if (!f) return 0;
+    const auto pos = f.tellg();
+    return pos < 0 ? 0 : static_cast<size_t>(pos);
+}
 
 static CorpusBuffer LoadCorpus(const std::string &path) {
     std::ifstream in(path);
@@ -157,8 +163,8 @@ static CorpusBuffer LoadCorpus(const std::string &path) {
     for (const auto &s : c.strings) {
         c.lengths.push_back(s.size());
         c.ptrs.push_back(reinterpret_cast<const unsigned char *>(s.data()));
-        c.raw_bytes += s.size();
     }
+    c.raw_bytes = FileSizeOnDisk(path);
     return c;
 }
 
@@ -318,22 +324,14 @@ int main(int argc, char **argv) {
         decompress_ms.push_back(std::chrono::duration<double, std::milli>(t3 - t2).count());
 
         if (rep == 0) {
-            // Compute compressed size with the same accounting as RunFSSTPlus:
-            // data payload + serialized symbol table - bitpacking savings on block offsets.
+            // Literal byte count of what FSST+ produced in memory (global header +
+            // block layout + serialized symbol table). No hypothetical-bitpacking
+            // subtraction: this is the size that would land on disk if FSST+ wrote
+            // its buffer out unchanged, matching runner.cpp's file_size(output)
+            // convention.
             size_t payload =
                 static_cast<size_t>(compression_result.data_end - compression_result.data_start);
             payload += CalcSymbolTableSize(encoder);
-            const uint16_t n_blocks = Load<uint16_t>(compression_result.data_start);
-            const size_t size_of_one_offset =
-                n_blocks > 1 ? static_cast<size_t>(std::ceil(std::log2(n_blocks) / 8.0))
-                             : 1;
-            const size_t bitpacked_offsets = n_blocks * size_of_one_offset;
-            const size_t non_bitpacked_offsets = n_blocks * sizeof(uint32_t);
-            const size_t savings =
-                non_bitpacked_offsets > bitpacked_offsets
-                    ? non_bitpacked_offsets - bitpacked_offsets
-                    : 0;
-            payload -= savings;
             compressed_bytes = payload;
         }
 
@@ -345,7 +343,8 @@ int main(int argc, char **argv) {
     const double comp_ms = Mean(compress_ms);
     const double decomp_ms = Mean(decompress_ms);
     const double cf = static_cast<double>(corpus.raw_bytes) / static_cast<double>(compressed_bytes);
-    const double mb = static_cast<double>(corpus.raw_bytes) / (1024.0 * 1024.0);
+    // Decimal MB/s to match runner.cpp (bytes / 1e6 / seconds).
+    const double mb = static_cast<double>(corpus.raw_bytes) / 1000000.0;
     const double comp_mbps = comp_ms > 0 ? mb / (comp_ms / 1000.0) : 0.0;
     const double decomp_mbps = decomp_ms > 0 ? mb / (decomp_ms / 1000.0) : 0.0;
 

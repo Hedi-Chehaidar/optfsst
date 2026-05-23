@@ -482,6 +482,36 @@ def figure_height_cf():
     return CF_ABSOLUTE_PLOT_HEIGHT if is_absolute_cf_metric() else CF_PLOT_HEIGHT
 
 
+def plot_dp_speedup(df, config_order):
+    """Per-file speedup of the unrolled+hinted buildDP over the naive variant.
+
+    CSV columns: configuration (OptFSST | OptFSST12), Speedup, file.
+    Speedup > 1 means the production buildDP is faster than the BUILDDP_NAIVE
+    variant on that file. One violin per codec.
+    """
+    df["Speedup"] = pd.to_numeric(df["Speedup"], errors="coerce")
+    df_s = df[["configuration", "Speedup"]].copy()
+
+    fig, ax = plt.subplots(figsize=(figure_width(config_order), figure_height_cf()))
+    ax.axhline(y=1, color="red", linestyle="--", linewidth=1, alpha=0.8, zorder=3)
+    base_violinplot(ax, df_s, "Speedup", config_order)
+    push_violins_below_grid(ax)
+    add_median_lines(ax, df_s, "Speedup", config_order)
+    add_mean_markers(ax, df_s, "Speedup", config_order, 0.0, "top")
+    ax.set_ylabel(r"Compression speed-up [$\times$]")
+    ax.set_xlabel("Codec", labelpad=14)
+    x_positions = np.arange(len(config_order))
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(config_order, rotation=0, ha="center")
+    configure_grid(ax)
+    add_marker_legend(ax)
+    output_path = "./plots/" + metric + ".pdf"
+    fig.tight_layout(pad=0.6)
+    center_xlabel_to_tight_bbox(fig, ax)
+    fig.savefig(output_path, format="pdf", bbox_inches="tight", dpi=300)
+    maybe_show()
+
+
 def plot_cf(df, config_order):
     df["CF"] = pd.to_numeric(df["CF"], errors="coerce")
     df_cf = df[["configuration", "CF"]].copy()
@@ -678,12 +708,14 @@ def main(csv_path: str):
         plot_summary_table(df, config_order, value_column)
         return
 
-    if "CF" in df.columns:
+    if "Speedup" in df.columns:
+        plot_dp_speedup(df, config_order)
+    elif "CF" in df.columns:
         plot_cf(df, config_order)
     elif "Time" in df.columns:
         plot_speed(df, config_order)
     else:
-        raise ValueError("CSV must contain either a CF or Time column")
+        raise ValueError("CSV must contain a Speedup, CF, or Time column")
 
 
 if __name__ == "__main__":

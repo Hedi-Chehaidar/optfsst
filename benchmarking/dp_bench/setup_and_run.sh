@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Build the dp_bench binaries (production OptFSST vs the no-unrolling /
+# Build the dp_bench binaries (production OptFSST(12) vs the no-unrolling /
 # no-branch-hint variant of SymbolTable::buildDP) and run them over
 # data/refined/.
 #
-# Output CSV: benchmarking/csv/dp_buildDP_variants.csv
+# Output CSVs:
+#   benchmarking/csv/dp_buildDP_variants.csv  -- per (variant, file)
+#   benchmarking/csv/dp_buildDP_speedup.csv   -- per (codec, file), speedup
 #
 # Required tools: cmake, ninja or make, g++, python3, taskset.
 
@@ -13,6 +15,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BENCH_DIR="$ROOT_DIR/benchmarking/dp_bench"
 BUILD_DIR="$ROOT_DIR/build-dp-bench"
 CSV_OUT="$ROOT_DIR/benchmarking/csv/dp_buildDP_variants.csv"
+SPEEDUP_OUT="$ROOT_DIR/benchmarking/csv/dp_buildDP_speedup.csv"
 DATA_ROOT="$ROOT_DIR/data/refined"
 REPS="${DP_BENCH_REPS:-5}"
 PIN_CPU="${DP_BENCH_CPU:-0}"
@@ -42,19 +45,24 @@ fi
 step "Configuring dp_bench in $BUILD_DIR"
 cmake -S "$BENCH_DIR" -B "$BUILD_DIR" $GENERATOR -DCMAKE_BUILD_TYPE=Release >/dev/null
 
-step "Building dp_bench_opt and dp_bench_naive"
-cmake --build "$BUILD_DIR" --target dp_bench_opt dp_bench_naive -j"$(nproc)"
+step "Building dp_bench_{opt,naive,opt12,naive12}"
+cmake --build "$BUILD_DIR" \
+    --target dp_bench_opt dp_bench_naive dp_bench_opt12 dp_bench_naive12 \
+    -j"$(nproc)"
 
 step "Running dp_bench over $DATA_ROOT"
-rm -f "$CSV_OUT"
+rm -f "$CSV_OUT" "$SPEEDUP_OUT"
 python3 "$BENCH_DIR/run_bench.py" \
     --root "$DATA_ROOT" \
-    --bench-opt   "$BUILD_DIR/dp_bench_opt" \
-    --bench-naive "$BUILD_DIR/dp_bench_naive" \
-    --out "$CSV_OUT" \
+    --bench-opt     "$BUILD_DIR/dp_bench_opt" \
+    --bench-naive   "$BUILD_DIR/dp_bench_naive" \
+    --bench-opt12   "$BUILD_DIR/dp_bench_opt12" \
+    --bench-naive12 "$BUILD_DIR/dp_bench_naive12" \
+    --out         "$CSV_OUT" \
+    --speedup-out "$SPEEDUP_OUT" \
     --reps "$REPS" \
     --cpu "$PIN_CPU" \
     --max-bytes "$MAX_BYTES"
 
-step "CSV written to $CSV_OUT"
-wc -l "$CSV_OUT"
+step "CSVs written"
+wc -l "$CSV_OUT" "$SPEEDUP_OUT"

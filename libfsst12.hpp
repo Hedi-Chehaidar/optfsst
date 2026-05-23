@@ -299,6 +299,22 @@ struct SymbolMap {
             }
          };
 
+#ifdef BUILDDP_NAIVE
+         // Benchmark variant: no manual unrolling, no __builtin_expect hints.
+         // Kept behind a compile-time switch so the production build is unaffected.
+         if (node != -1) {
+            for (int off = 1; off < limit; ++off) {
+               node = trie[node].child[data[i + off]];
+               if (node == -1) break;
+               int code = trie[node].symbolCode;
+               u32 cost = 1u + dpCost[i + off + 1];
+               if (code != -1 && cost <= bestCost) {
+                  bestCost = cost;
+                  bestCode = (u16) code;
+               }
+            }
+         }
+#else
          if (likely(limit > 1 && node != -1)) {
             node = trieGetChild(node, data[i + 1]);
             if (unlikely(node == -1)) goto builddp_done;
@@ -336,6 +352,7 @@ struct SymbolMap {
          }
 
 builddp_done:
+#endif
          dpCost[i] = bestCost;
          dpChoice[i] = bestCode;
       }

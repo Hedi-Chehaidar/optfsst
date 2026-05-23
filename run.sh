@@ -67,9 +67,6 @@ step "Running paper benchmarks"
     ./runner
 )
 
-step "Running FSST+ vs OptFSST+ benchmark"
-bash "$BENCH_DIR/fsst_plus_bench/setup_and_run.sh"
-
 step "Running buildDP-variant compression-speed benchmark"
 bash "$BENCH_DIR/dp_bench/setup_and_run.sh"
 
@@ -103,5 +100,10 @@ step "Generating plots"
         python3 plot_results.py decompression_speed_block_compressors
     else
         echo "warning: csv/decompression_speed_block_compressors.csv not found, skipping plot" >&2
+    fi
+    if [[ -f "./csv/dp_buildDP_speedup.csv" ]]; then
+        python3 plot_results.py dp_buildDP_speedup
+    else
+        echo "warning: csv/dp_buildDP_speedup.csv not found, skipping plot" >&2
     fi
 )

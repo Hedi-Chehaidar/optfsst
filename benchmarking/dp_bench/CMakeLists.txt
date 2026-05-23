@@ -31,7 +31,7 @@ if(CMAKE_BUILD_TYPE STREQUAL Release)
     )
 endif()
 
-set(FSST_SOURCES
+set(FSST8_SOURCES
     "${FSST_ROOT}/libfsst.cpp"
     "${FSST_ROOT}/fsst_avx512.cpp"
     "${FSST_ROOT}/fsst_avx512_unroll1.inc"
@@ -40,18 +40,44 @@ set(FSST_SOURCES
     "${FSST_ROOT}/fsst_avx512_unroll4.inc"
 )
 
+set(FSST12_SOURCES
+    "${FSST_ROOT}/libfsst12.cpp"
+)
+
+# ---- 8-bit OptFSST ----------------------------------------------------------
 # Production OptFSST: unrolled buildDP with __builtin_expect hints.
-add_library(fsst_opt STATIC ${FSST_SOURCES})
+add_library(fsst_opt STATIC ${FSST8_SOURCES})
 target_include_directories(fsst_opt PUBLIC "${FSST_ROOT}")
 
 # Naive buildDP variant: same source, BUILDDP_NAIVE selects the plain loop in
 # SymbolTable::buildDP. The rest of the OptFSST pipeline is unchanged.
-add_library(fsst_naive STATIC ${FSST_SOURCES})
+add_library(fsst_naive STATIC ${FSST8_SOURCES})
 target_include_directories(fsst_naive PUBLIC "${FSST_ROOT}")
 target_compile_definitions(fsst_naive PRIVATE BUILDDP_NAIVE=1)
 
+# ---- 12-bit OptFSST12 -------------------------------------------------------
+# Production OptFSST12 (4096-symbol dictionary, no AVX-512 path).
+add_library(fsst12_opt STATIC ${FSST12_SOURCES})
+target_include_directories(fsst12_opt PUBLIC "${FSST_ROOT}")
+
+# Naive buildDP variant of OptFSST12.
+add_library(fsst12_naive STATIC ${FSST12_SOURCES})
+target_include_directories(fsst12_naive PUBLIC "${FSST_ROOT}")
+target_compile_definitions(fsst12_naive PRIVATE BUILDDP_NAIVE=1)
+
+# ---- Bench executables ------------------------------------------------------
+# Each binary embeds exactly one (codec x buildDP-variant) pair to avoid
+# multiple-definition link errors on the shared Optfsst_* symbols.
 add_executable(dp_bench_opt dp_bench.cpp)
 target_link_libraries(dp_bench_opt PRIVATE fsst_opt Threads::Threads)
 
 add_executable(dp_bench_naive dp_bench.cpp)
 target_link_libraries(dp_bench_naive PRIVATE fsst_naive Threads::Threads)
+
+add_executable(dp_bench_opt12 dp_bench.cpp)
+target_compile_definitions(dp_bench_opt12 PRIVATE FSST12=1)
+target_link_libraries(dp_bench_opt12 PRIVATE fsst12_opt Threads::Threads)
+
+add_executable(dp_bench_naive12 dp_bench.cpp)
+target_compile_definitions(dp_bench_naive12 PRIVATE FSST12=1)
+target_link_libraries(dp_bench_naive12 PRIVATE fsst12_naive Threads::Threads)
