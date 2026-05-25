@@ -8,7 +8,7 @@ Contributions:
 
 OptFSST has higher compression factors than FSST by up to 47.7%. Average improvement was at 7.3%.
 
-![CF improvement plot](https://github.com/Hedi-Chehaidar/optfsst/blob/master/optfsst-CF-improvement.png)
+![CF improvement plot](https://github.com/Hedi-Chehaidar/optfsst/blob/master/benchmarking/plots/improvement.pdf)
 
 You can build the project and compile it the same way like in the FSST repository. Use command line options when running the `fsst` or `fsst12` binary to include the contributions (no options = FSST/FSST12, all options = OptFSST/OptFSST12).
 
@@ -18,4 +18,4 @@ For the paper benchmarks, run `./run.sh`. It builds the scalar and AVX-512 8-bit
 - compression-speed CSVs and plots comparing `FSST`, `FSST (SIMD)`, `OptFSST`, `FSST12`, and `OptFSST12`
 - decompression-speed CSVs and plots comparing `FSST`, `OptFSST`, `FSST12`, and `OptFSST12`
 
-More details in thesis and presentation.
+More details in thesis presentation.

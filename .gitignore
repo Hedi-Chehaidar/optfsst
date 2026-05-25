@@ -15,6 +15,7 @@ data/raw/
 data/refined/
 data/refined_all/
 benchmarking/prv/
+benchmarking/fsst_plus_bench/
 benchmarking/runner
 benchmarking/verify_dp
 benchmarking/smoke_out
@@ -27,6 +28,12 @@ benchmarking/runner
 benchmarking/runner12
 benchmarking/cf_bench12
 benchmarking/line_bench
+benchmarking/line_bench.cpp
 benchmarking/runner
 benchmarking/runner12
 benchmarking/runner_trie_metrics
+benchmarking/runner_trie_metrics.cpp
+benchmarking/snappy_bench
+benchmarking/lz4_bench
+benchmarking/zstd_bench
+benchmarking/__pycache__/
