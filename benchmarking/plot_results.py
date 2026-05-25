@@ -498,7 +498,7 @@ def plot_dp_speedup(df, config_order):
     push_violins_below_grid(ax)
     add_median_lines(ax, df_s, "Speedup", config_order)
     add_mean_markers(ax, df_s, "Speedup", config_order, 0.0, "top")
-    ax.set_ylabel(r"Compression speed-up [$\times$]")
+    ax.set_ylabel(r"Compression speedup [$\times$]")
     ax.set_xlabel("Codec", labelpad=14)
     x_positions = np.arange(len(config_order))
     ax.set_xticks(x_positions)
