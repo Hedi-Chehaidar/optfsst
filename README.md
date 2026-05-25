@@ -8,7 +8,7 @@ Contributions:
 
 OptFSST has higher compression factors than FSST by up to 47.7%. Average improvement was at 7.3%.
 
-![CF improvement plot](https://github.com/Hedi-Chehaidar/optfsst/blob/master/benchmarking/plots/improvement.pdf)
+![CF improvement plot](benchmarking/plots/improvement.png)
 
 You can build the project and compile it the same way like in the FSST repository. Use command line options when running the `fsst` or `fsst12` binary to include the contributions (no options = FSST/FSST12, all options = OptFSST/OptFSST12).
 
